@@ -77,6 +77,24 @@ public class Jib {
             return JibFunction(jib: self, name: name)
         }
     }
+}
+
+extension Jib {
+    @discardableResult
+    @inlinable
+    public func exec(_ script: String) throws -> Hitch? {
+        return try exec(HalfHitch(string: script))
+    }
     
+    @discardableResult
+    @inlinable
+    public func exec(_ script: StaticString) throws -> Hitch? {
+        return try exec(HalfHitch(stringLiteral: script))
+    }
     
+    @discardableResult
+    @inlinable
+    public func exec(_ script: Hitch) throws -> Hitch? {
+        return try exec(script.halfhitch())
+    }
 }
