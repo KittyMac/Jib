@@ -53,19 +53,18 @@ final class JibTests: XCTestCase {
     func testCallArgs3() throws {
         let jib = Jib()
         
-        let callback = jib.function(name: "test") { args in
-            print("HI")
-            return nil
-        }
-                
-        try jib.exec("function callback(x, f) { f(x); }")
+        let swiftUppercase = jib.makeFunction(name: "swiftUppercase") { args in
+            return args.map { $0.uppercase() }
+        }!
+        
+        try jib.exec("function callback(x, f) { return f(x); }")
                 
         guard let callbackFunc = jib[function: "callback"] else {
             XCTFail("unable to extract global function hello")
             return
         }
-        
-        XCTAssertEqual(try jib.call(callbackFunc, [1, callback]), "1")
+    
+        XCTAssertEqual(try jib.call(callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
     }
     
     func testException() {

@@ -7,7 +7,6 @@ import CJSCore
 import Foundation
 import Hitch
 
-public typealias JibFunction = JSObjectRef
 public typealias JibValue = JSValueRef
 
 @usableFromInline
@@ -36,9 +35,17 @@ func JSValueToHitch(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Hitc
 }
 
 @inlinable @inline(__always)
-func HalfHitchToJSString(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JSStringRef? {
+func CreateJSString(halfhitch value: HalfHitch) -> JSStringRef? {
     guard let raw = value.raw() else { return nil }
     return JSStringCreateWithUTF8CString(raw)
+}
+
+@inlinable @inline(__always)
+func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JSStringRef? {
+    guard let raw = value.raw() else { return nil }
+    let jsString = JSStringCreateWithUTF8CString(raw)
+    defer { JSStringRelease(jsString) }
+    return JSValueMakeString(context, jsString)
 }
 
 @inlinable @inline(__always)

@@ -7,7 +7,8 @@ let jibTargets: [Target] = [
     .target(
         name: "JibFramework",
         dependencies: [
-            "Hitch"
+            "Hitch",
+            "Spanker"
         ]
     )
 ]
@@ -23,7 +24,8 @@ let jibTargets: [Target] = [
         name: "JibFramework",
         dependencies: [
             "CJSCore",
-            "Hitch"
+            "Hitch",
+            "Spanker"
         ]
     ),
 ]
@@ -39,6 +41,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/KittyMac/Hitch.git", from: "0.4.0"),
+        .package(url: "https://github.com/KittyMac/Spanker.git", from: "0.2.0"),
     ],
     targets: jibTargets + [
         .testTarget(
