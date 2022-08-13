@@ -1,2 +1,3 @@
 # Jib
-Simple cross platform Swift wrapper around JavaScriptCore
+
+A *simple*, cross-platform Swift wrapper around JavaScriptCore
