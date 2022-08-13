@@ -83,7 +83,7 @@ final class JibTests: XCTestCase {
             return
         }
         
-        XCTAssertEqual(try jib.call(helloFunc, []), "hello")
+        XCTAssertEqual(jib.call(helloFunc, []), "hello")
     }
     
     func testCallArgs1() throws {
@@ -98,7 +98,7 @@ final class JibTests: XCTestCase {
             return
         }
         
-        XCTAssertEqual(try jib.call(uppercaseFunc, ["hello world"]), "HELLO WORLD")
+        XCTAssertEqual(jib.call(uppercaseFunc, ["hello world"]), "HELLO WORLD")
     }
     
     func testCallArgs2() throws {
@@ -111,7 +111,7 @@ final class JibTests: XCTestCase {
             return
         }
         
-        XCTAssertEqual(try jib.call(addFunc, [2, 3]), "5")
+        XCTAssertEqual(jib.call(addFunc, [2, 3]), "5")
     }
     
     func testCallArgs3() throws {
@@ -128,7 +128,7 @@ final class JibTests: XCTestCase {
             return
         }
     
-        XCTAssertEqual(try jib.call(callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
+        XCTAssertEqual(jib.call(callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
     }
     
     func testMemoryLeak() throws {

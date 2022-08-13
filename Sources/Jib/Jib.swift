@@ -18,7 +18,11 @@ public class Jib {
     
     public var exception: Hitch?
     
+    @usableFromInline
+    let lock = NSLock()
+    
     deinit {
+        lock.lock(); defer { lock.unlock() }
         JSContextGroupRelease(group)
         JSGlobalContextRelease(context)
     }
@@ -33,7 +37,9 @@ public class Jib {
     }
     
     @discardableResult
-    public func call(_ function: JibFunction, _ args: [JibUnknown?]) throws -> Hitch? {
+    public func call(_ function: JibFunction, _ args: [JibUnknown?]) -> Hitch? {
+        lock.lock(); defer { lock.unlock() }
+        
         var jsException: JSObjectRef? = nil
         
         let convertedArgs = args.map { $0?.createJibValue(self) }
@@ -41,13 +47,15 @@ public class Jib {
         let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
         
         if let jsException = jsException {
-            throw RuntimeError(JSValueToHitch(context, jsException))
+            return record(exception: jsException)
         }
-                
+
         return JSValueToHitch(context, jsValue)
     }
     
     public func garbageCollect() {
+        lock.lock(); defer { lock.unlock() }
+        
         JSGarbageCollect(context)
     }
     
@@ -55,6 +63,8 @@ public class Jib {
     
     @discardableResult
     public func new(function name: HalfHitch, body: @escaping JibFunctionBody) -> JibFunction? {
+        lock.lock(); defer { lock.unlock() }
+        
         return JibFunction(jib: self, name: name, body: body)
     }
     
@@ -63,6 +73,8 @@ public class Jib {
     @inlinable @inline(__always)
     public subscript (eval exec: HalfHitch) -> Bool? {
         get {
+            lock.lock(); defer { lock.unlock() }
+            
             guard let _ = resolve(exec) else { return nil }
             return true
         }
@@ -71,6 +83,8 @@ public class Jib {
     @inlinable @inline(__always)
     public subscript (function exec: HalfHitch) -> JibFunction? {
         get {
+            lock.lock(); defer { lock.unlock() }
+            
             guard let value = resolve(exec) else { return nil }
             guard JSValueIsUndefined(context, value) == false else { return nil }
             guard JSObjectIsFunction(context, value) == true else { return nil }
@@ -81,6 +95,8 @@ public class Jib {
     @inlinable @inline(__always)
     public subscript (hitch exec: HalfHitch) -> Hitch? {
         get {
+            lock.lock(); defer { lock.unlock() }
+            
             guard let value = resolve(exec) else { return nil }
             return JSValueToHitch(context, value)
         }
@@ -89,6 +105,8 @@ public class Jib {
     @inlinable @inline(__always)
     public subscript (halfhitch exec: HalfHitch) -> HalfHitch? {
         get {
+            lock.lock(); defer { lock.unlock() }
+            
             guard let value = resolve(exec) else { return nil }
             return JSValueToHitch(context, value).halfhitch()
         }
@@ -97,6 +115,8 @@ public class Jib {
     @inlinable @inline(__always)
     public subscript (string exec: HalfHitch) -> String? {
         get {
+            lock.lock(); defer { lock.unlock() }
+            
             guard let value = resolve(exec) else { return nil }
             return JSValueToHitch(context, value).description
         }
@@ -113,6 +133,8 @@ public class Jib {
     @inlinable @inline(__always)
     public subscript (double exec: HalfHitch) -> Double? {
         get {
+            lock.lock(); defer { lock.unlock() }
+            
             guard let value = resolve(exec) else { return nil }
             guard JSValueIsUndefined(context, value) == false else { return nil }
             guard JSValueIsNumber(context, value) == true else { return nil }
@@ -137,6 +159,8 @@ public class Jib {
     @inlinable @inline(__always)
     public subscript (bool exec: HalfHitch) -> Bool? {
         get {
+            lock.lock(); defer { lock.unlock() }
+            
             guard let value = resolve(exec) else { return nil }
             guard JSValueIsUndefined(context, value) == false else { return nil }
             guard JSValueIsBoolean(context, value) == true else { return nil }
@@ -186,24 +210,3 @@ public class Jib {
         return nil
     }
 }
-/*
-extension Jib {
-    @discardableResult
-    @inlinable
-    public func exec(_ script: String) throws -> Hitch? {
-        return try exec(HalfHitch(string: script))
-    }
-    
-    @discardableResult
-    @inlinable
-    public func exec(_ script: StaticString) throws -> Hitch? {
-        return try exec(HalfHitch(stringLiteral: script))
-    }
-    
-    @discardableResult
-    @inlinable
-    public func exec(_ script: Hitch) throws -> Hitch? {
-        return try exec(script.halfhitch())
-    }
-}
-*/
