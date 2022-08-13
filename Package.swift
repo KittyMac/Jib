@@ -5,7 +5,7 @@ import PackageDescription
 #if canImport(JavaScriptCore)
 let jibTargets: [Target] = [
     .target(
-        name: "JibFramework",
+        name: "Jib",
         dependencies: [
             "Hitch",
             "Spanker"
@@ -21,7 +21,7 @@ let jibTargets: [Target] = [
         ]
     ),
     .target(
-        name: "JibFramework",
+        name: "Jib",
         dependencies: [
             "CJSCore",
             "Hitch",
@@ -37,7 +37,7 @@ let package = Package(
         .macOS(.v10_13)
     ],
     products: [
-        .library( name: "JibFramework", targets: ["JibFramework"]),
+        .library( name: "Jib", targets: ["Jib"]),
     ],
     dependencies: [
         .package(url: "https://github.com/KittyMac/Hitch.git", from: "0.4.0"),
@@ -46,7 +46,7 @@ let package = Package(
     targets: jibTargets + [
         .testTarget(
             name: "JibTests",
-            dependencies: ["JibFramework"]
+            dependencies: ["Jib"]
         )
     ]
 )

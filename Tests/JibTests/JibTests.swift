@@ -1,5 +1,5 @@
 import XCTest
-import JibFramework
+import Jib
 
 final class JibTests: XCTestCase {
     
