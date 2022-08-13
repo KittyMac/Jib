@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "chronometer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KittyMac/Chronometer.git",
+      "state" : {
+        "revision" : "1360b46bfa6eecbdedd24590b95f97d3e59dc027",
+        "version" : "0.1.6"
+      }
+    },
+    {
       "identity" : "hitch",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KittyMac/Hitch.git",

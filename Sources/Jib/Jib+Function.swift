@@ -42,12 +42,8 @@ public class JibFunction {
     }
     
     @usableFromInline
-    init?(jib: Jib, name: HalfHitch) {
-        guard let jsString = CreateJSString(halfhitch: name) else { return nil }
-        let value = JSObjectGetProperty(jib.context, jib.global, jsString, nil)
-        JSStringRelease(jsString)
-        guard JSObjectIsFunction(jib.context, value) else { return nil }
-        objectRef = value
+    init?(jib: Jib, object: JSObjectRef) {
+        objectRef = object
         myCallbackId = -1
     }
     

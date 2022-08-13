@@ -7,9 +7,11 @@ import CJSCore
 import Foundation
 import Hitch
 
+@usableFromInline
 struct RuntimeError: Error, CustomStringConvertible {
     let message: Hitch
-
+    
+    @usableFromInline
     init(_ message: Hitch) {
         self.message = message
     }
