@@ -37,18 +37,29 @@ public class JibFunction {
     @usableFromInline
     let objectRef: JSObjectRef?
     
+    weak var jib: Jib?
+    
     deinit {
+        if let jib = jib {
+            JSValueUnprotect(jib.context, objectRef)
+        }
+        
         unregisterCallback(callbackID: myCallbackId)
     }
     
     @usableFromInline
     init?(jib: Jib, object: JSObjectRef) {
+        self.jib = jib
+        
         objectRef = object
         myCallbackId = -1
+        
+        JSValueProtect(jib.context, objectRef)
     }
     
     @usableFromInline
     init?(jib: Jib, name: HalfHitch, body: @escaping JibFunctionBody) {
+        self.jib = jib
         
         myCallbackId = registerCallback(body: body)
         
@@ -86,6 +97,8 @@ public class JibFunction {
         }
         
         JSObjectSetProperty(jib.context, objectRef, callbacksProperyName, myCallbackId.createJibValue(jib), 0, nil)
+        
+        JSValueProtect(jib.context, objectRef)
     }
 }
 

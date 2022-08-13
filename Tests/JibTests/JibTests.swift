@@ -131,6 +131,33 @@ final class JibTests: XCTestCase {
         XCTAssertEqual(jib.call(callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
     }
     
+    func testThreadSafety() throws {
+        let jib = Jib()
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 20
+        
+        
+        for _ in 0..<10 {
+            queue.addOperation {
+                let swiftUppercase = jib.new(function: "swiftUppercase") { args in
+                    return args.map { $0.uppercase() }
+                }!
+                
+                _ = jib[eval: "function callback(x, f) { return f(x); }"]
+                        
+                let callbackFunc = jib[function: "callback"]!
+                
+                for _ in 0..<100000 {
+                    queue.addOperation {
+                        XCTAssertEqual(jib.call(callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
+                    }
+                }
+            }
+        }
+        
+        queue.waitUntilAllOperationsAreFinished()
+    }
+    
     func testMemoryLeak() throws {
         
         let jib = Jib()
