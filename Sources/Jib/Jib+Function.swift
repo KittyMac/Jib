@@ -64,7 +64,7 @@ public class JibFunction {
         myCallbackId = registerCallback(body: body)
         
         let functionName = CreateJSString(halfhitch: name)
-        JSStringRelease(functionName)
+        defer { JSStringRelease(functionName) }
         
         objectRef = JSObjectMakeFunctionWithCallback(jib.context, functionName) { context, function, thisObject, argumentCount, arguments, exception in
             callbacksLock.lock(); defer { callbacksLock.unlock() }
