@@ -158,6 +158,22 @@ final class JibTests: XCTestCase {
         queue.waitUntilAllOperationsAreFinished()
     }
     
+    func testConvenience() {
+        let jib = Jib()
+        
+        let staticString: StaticString = "StaticString"
+        _ = jib[eval: staticString]
+        
+        let string: String = "String"
+        _ = jib[eval: string]
+        
+        let hitch: Hitch = "Hitch"
+        _ = jib[eval: hitch]
+        
+        let halfhitch: HalfHitch = "HalfHitch"
+        _ = jib[eval: halfhitch]
+    }
+    
     func testMemoryLeak() throws {
         
         let jib = Jib()

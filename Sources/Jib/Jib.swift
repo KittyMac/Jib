@@ -79,6 +79,9 @@ public class Jib {
             return true
         }
     }
+    @inlinable @inline(__always) public subscript (eval exec: Hitch) -> Bool? { get { return self[eval: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (eval exec: String) -> Bool? { get { return self[eval: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (eval exec: StaticString) -> Bool? { get { return self[eval: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (function exec: HalfHitch) -> JibFunction? {
@@ -91,6 +94,9 @@ public class Jib {
             return JibFunction(jib: self, object: value)
         }
     }
+    @inlinable @inline(__always) public subscript (function exec: Hitch) -> JibFunction? { get { return self[function: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (function exec: String) -> JibFunction? { get { return self[function: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (function exec: StaticString) -> JibFunction? { get { return self[function: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (hitch exec: HalfHitch) -> Hitch? {
@@ -101,6 +107,9 @@ public class Jib {
             return JSValueToHitch(context, value)
         }
     }
+    @inlinable @inline(__always) public subscript (hitch exec: Hitch) -> Hitch? { get { return self[hitch: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (hitch exec: String) -> Hitch? { get { return self[hitch: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (hitch exec: StaticString) -> Hitch? { get { return self[hitch: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (halfhitch exec: HalfHitch) -> HalfHitch? {
@@ -111,6 +120,9 @@ public class Jib {
             return JSValueToHitch(context, value).halfhitch()
         }
     }
+    @inlinable @inline(__always) public subscript (halfhitch exec: Hitch) -> HalfHitch? { get { return self[halfhitch: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (halfhitch exec: String) -> HalfHitch? { get { return self[halfhitch: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (halfhitch exec: StaticString) -> HalfHitch? { get { return self[halfhitch: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (string exec: HalfHitch) -> String? {
@@ -121,6 +133,9 @@ public class Jib {
             return JSValueToHitch(context, value).description
         }
     }
+    @inlinable @inline(__always) public subscript (string exec: Hitch) -> String? { get { return self[string: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (string exec: String) -> String? { get { return self[string: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (string exec: StaticString) -> String? { get { return self[string: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (date exec: HalfHitch) -> Date? {
@@ -129,6 +144,9 @@ public class Jib {
             return value.description.date()
         }
     }
+    @inlinable @inline(__always) public subscript (date exec: Hitch) -> Date? { get { return self[date: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (date exec: String) -> Date? { get { return self[date: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (date exec: StaticString) -> Date? { get { return self[date: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (double exec: HalfHitch) -> Double? {
@@ -147,6 +165,9 @@ public class Jib {
             return number
         }
     }
+    @inlinable @inline(__always) public subscript (double exec: Hitch) -> Double? { get { return self[double: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (double exec: String) -> Double? { get { return self[double: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (double exec: StaticString) -> Double? { get { return self[double: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (int exec: HalfHitch) -> Int? {
@@ -155,6 +176,9 @@ public class Jib {
             return Int(number)
         }
     }
+    @inlinable @inline(__always) public subscript (int exec: Hitch) -> Int? { get { return self[int: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (int exec: String) -> Int? { get { return self[int: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (int exec: StaticString) -> Int? { get { return self[int: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (bool exec: HalfHitch) -> Bool? {
@@ -167,7 +191,9 @@ public class Jib {
             return JSValueToBoolean(context, value)
         }
     }
-    
+    @inlinable @inline(__always) public subscript (bool exec: Hitch) -> Bool? { get { return self[bool: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (bool exec: String) -> Bool? { get { return self[bool: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (bool exec: StaticString) -> Bool? { get { return self[bool: HalfHitch(stringLiteral: exec)] } }
     
     @discardableResult
     @inlinable @inline(__always)
