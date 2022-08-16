@@ -36,7 +36,7 @@ let jibTargets: [Target] = [
 let package = Package(
     name: "Jib",
     platforms: [
-        .macOS(.v10_13)
+        .macOS(.v10_13), .iOS(.v11)
     ],
     products: [
         .library( name: "Jib", targets: ["Jib"]),
