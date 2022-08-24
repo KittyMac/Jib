@@ -18,6 +18,8 @@ public class Jib {
     
     public var exception: Hitch?
     
+    private var printFn: JibFunction? = nil
+    
     @usableFromInline
     let lock = NSLock()
     
@@ -34,6 +36,20 @@ public class Jib {
         undefined = JSValueMakeUndefined(context)
         self.true = JSValueMakeBoolean(context, true)
         self.false = JSValueMakeBoolean(context, false)
+        
+        printFn = new(function: "print", body: { arguments in
+            for argument in arguments {
+                print(argument)
+            }
+            return nil
+        })
+        
+        if let printFn = printFn {
+            set(global: "print", value: printFn)
+            _ = self[eval: "console = {}; console.log = print;"]
+        } else {
+            print("warning: jibPrint failed to be created, console.log will not work")
+        }
     }
     
     @discardableResult
@@ -67,6 +83,30 @@ public class Jib {
         
         return JibFunction(jib: self, name: name, body: body)
     }
+    
+    @discardableResult
+    public func set(global name: HalfHitch, value: JibValue) -> Bool? {
+        lock.lock(); defer { lock.unlock() }
+        
+        let jsString = CreateJSString(halfhitch: name)
+        defer { JSStringRelease(jsString) }
+        
+        var jsException: JSObjectRef? = nil
+                
+        JSObjectSetProperty(context, global, jsString, value, UInt32(kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontEnum | kJSPropertyAttributeDontDelete), &jsException)
+        if let jsException = jsException {
+            return record(exception: jsException)
+        }
+        
+        return true
+    }
+    
+    @discardableResult
+    public func set(global name: HalfHitch, value: JibFunction) -> Bool? {
+        return set(global: name, value: value.objectRef ?? undefined)
+    }
+    
+    
     
     // MARK: - JS Resolution
     

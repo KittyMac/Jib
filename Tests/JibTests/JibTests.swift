@@ -62,6 +62,13 @@ final class JibTests: XCTestCase {
         XCTAssertTrue(result7b > Date.distantPast)
     }
     
+    func testPrint() {
+        let jib = Jib()
+        
+        _ = jib[eval: "print('hello world')"]!
+        _ = jib[eval: "console.log('hello world')"]!
+    }
+    
     func testException() {
         let jib = Jib()
         
