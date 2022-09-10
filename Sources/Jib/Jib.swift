@@ -46,7 +46,7 @@ public class Jib {
         
         if let printFn = printFn {
             set(global: "print", value: printFn)
-            _ = self[eval: "console = {}; console.log = print;"]
+            _ = eval("console = {}; console.log = print;")
         } else {
             print("warning: jibPrint failed to be created, console.log will not work")
         }
@@ -106,22 +106,29 @@ public class Jib {
         return set(global: name, value: value.objectRef ?? undefined)
     }
     
-    
+    // MARK: - JS Resolution
+    public func eval(_ script: HalfHitch) -> Bool? {
+        lock.lock(); defer { lock.unlock() }
+        
+        // if that fails, attempt to resolve by evaluating it as a script
+        guard let raw = script.raw() else { return nil }
+        
+        let jsScript = JSStringCreateWithUTF8CString(raw)
+        defer { JSStringRelease(jsScript) }
+
+        var jsException: JSObjectRef? = nil
+        JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
+        if let jsException = jsException {
+            return record(exception: jsException)
+        }
+                
+        return true
+    }
+    @inlinable @inline(__always) public func eval(_ script: Hitch) -> Bool? { return eval(script.halfhitch()) }
+    @inlinable @inline(__always) public func eval(_ script: String) -> Bool? { return eval(HalfHitch(string: script)) }
+    @inlinable @inline(__always) public func eval(_ script: StaticString) -> Bool? { return eval(HalfHitch(stringLiteral: script)) }
     
     // MARK: - JS Resolution
-    
-    @inlinable @inline(__always)
-    public subscript (eval exec: HalfHitch) -> Bool? {
-        get {
-            lock.lock(); defer { lock.unlock() }
-            
-            guard let _ = resolve(exec) else { return nil }
-            return true
-        }
-    }
-    @inlinable @inline(__always) public subscript (eval exec: Hitch) -> Bool? { get { return self[eval: exec.halfhitch()] } }
-    @inlinable @inline(__always) public subscript (eval exec: String) -> Bool? { get { return self[eval: HalfHitch(string: exec)] } }
-    @inlinable @inline(__always) public subscript (eval exec: StaticString) -> Bool? { get { return self[eval: HalfHitch(stringLiteral: exec)] } }
     
     @inlinable @inline(__always)
     public subscript (function exec: HalfHitch) -> JibFunction? {
@@ -235,6 +242,20 @@ public class Jib {
     @inlinable @inline(__always) public subscript (bool exec: String) -> Bool? { get { return self[bool: HalfHitch(string: exec)] } }
     @inlinable @inline(__always) public subscript (bool exec: StaticString) -> Bool? { get { return self[bool: HalfHitch(stringLiteral: exec)] } }
     
+    @inlinable @inline(__always)
+    public subscript (json exec: HalfHitch) -> Hitch? {
+        get {
+            lock.lock(); defer { lock.unlock() }
+            
+            guard let value = resolve(exec) else { return nil }
+            guard JSValueIsUndefined(context, value) == false else { return nil }
+            return JSValueToJson(context, value)
+        }
+    }
+    @inlinable @inline(__always) public subscript (json exec: Hitch) -> Hitch? { get { return self[json: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript (json exec: String) -> Hitch? { get { return self[json: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript (json exec: StaticString) -> Hitch? { get { return self[json: HalfHitch(stringLiteral: exec)] } }
+    
     @discardableResult
     @inlinable @inline(__always)
     func resolve(_ hitch: HalfHitch) -> JSValueRef? {
@@ -254,8 +275,11 @@ public class Jib {
         }
         
         // if that fails, attempt to resolve by evaluating it as a script
-        guard let raw = hitch.raw() else { return undefined }
-        
+        let modifiedHitch = "({0})" << [hitch]
+        guard let raw = modifiedHitch.raw() else { return undefined }
+
+        // JavascriptCore does not appear to evaluation object literals correctly, it will
+        // always return undefined unless it is embedded in parens
         let jsScript = JSStringCreateWithUTF8CString(raw)
         defer { JSStringRelease(jsScript) }
 

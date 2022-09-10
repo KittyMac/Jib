@@ -1,8 +1,17 @@
 import XCTest
 import Jib
 import Hitch
+import JavaScriptCore
 
 final class JibTests: XCTestCase {
+    
+    func testJson() {
+        let jib = Jib()
+                
+        let result1 = jib[json: #"{a:1}"#]!
+        print(result1)
+        //XCTAssertEqual(result1, #"{a:1}"#)
+    }
     
     func testResolution() {
         let jib = Jib()
@@ -31,13 +40,13 @@ final class JibTests: XCTestCase {
         XCTAssertTrue(result7 > Date.distantPast)
         
         // resolving global objects to types
-        _ = jib[eval: """
+        _ = jib.eval("""
         var testString = "Hello World"
         var testInt = 4
         var testDouble = 1.234
         var testBool = true
         var testDate = Date()
-        """]
+        """)
         
         let result1b = jib[string: "testString"]!
         XCTAssertEqual(result1b, "Hello World")
@@ -65,14 +74,14 @@ final class JibTests: XCTestCase {
     func testPrint() {
         let jib = Jib()
         
-        _ = jib[eval: "print('hello world')"]!
-        _ = jib[eval: "console.log('hello world')"]!
+        _ = jib.eval("print('hello world')")!
+        _ = jib.eval("console.log('hello world')")!
     }
     
     func testException() {
         let jib = Jib()
         
-        guard let _ = jib[eval: " x.hello() "] else {
+        guard let _ = jib.eval(" x.hello() ") else {
             XCTAssertEqual(jib.exception, "ReferenceError: Can't find variable: x")
             return
         }
@@ -81,11 +90,7 @@ final class JibTests: XCTestCase {
     func testCallFunction0() {
         let jib = Jib()
         
-        _ = jib[eval: """
-        function hello() { return `hello` }
-        """]
-        
-        guard let helloFunc = jib[function: "hello"] else {
+        guard let helloFunc = jib[function: "(function () { return `hello` })"] else {
             XCTFail("unable to resolve function hello")
             return
         }
@@ -96,7 +101,7 @@ final class JibTests: XCTestCase {
     func testCallArgs1() throws {
         let jib = Jib()
         
-        _ = jib[eval: "function uppercase(arg1) { return arg1.toUpperCase(); }"]
+        _ = jib.eval("function uppercase(arg1) { return arg1.toUpperCase(); }")
         
         XCTAssertEqual(jib[string: "uppercase(`hello world`)"], "HELLO WORLD")
         
@@ -111,7 +116,7 @@ final class JibTests: XCTestCase {
     func testCallArgs2() throws {
         let jib = Jib()
         
-        _ = jib[eval: "function add(x, y) { return x + y }"]
+        _ = jib.eval("function add(x, y) { return x + y }")
                 
         guard let addFunc = jib[function: "add"] else {
             XCTFail("unable to extract global function hello")
@@ -128,7 +133,7 @@ final class JibTests: XCTestCase {
             return args.map { $0.uppercase() }
         }!
         
-        _ = jib[eval: "function callback(x, f) { return f(x); }"]
+        _ = jib.eval("function callback(x, f) { return f(x); }")
                 
         guard let callbackFunc = jib[function: "callback"] else {
             XCTFail("unable to extract global function hello")
@@ -150,7 +155,7 @@ final class JibTests: XCTestCase {
                     return args.map { $0.uppercase() }
                 }!
                 
-                _ = jib[eval: "function callback(x, f) { return f(x); }"]
+                _ = jib.eval("function callback(x, f) { return f(x); }")
                         
                 let callbackFunc = jib[function: "callback"]!
                 
@@ -169,16 +174,16 @@ final class JibTests: XCTestCase {
         let jib = Jib()
         
         let staticString: StaticString = "StaticString"
-        _ = jib[eval: staticString]
+        _ = jib.eval(staticString)
         
         let string: String = "String"
-        _ = jib[eval: string]
+        _ = jib.eval(string)
         
         let hitch: Hitch = "Hitch"
-        _ = jib[eval: hitch]
+        _ = jib.eval(hitch)
         
         let halfhitch: HalfHitch = "HalfHitch"
-        _ = jib[eval: halfhitch]
+        _ = jib.eval(halfhitch)
     }
     
     func testMemoryLeak() throws {
@@ -187,7 +192,7 @@ final class JibTests: XCTestCase {
         
         if true {
             for _ in 0..<10000 {
-                _ = jib[eval: "41+1"]
+                _ = jib.eval("41+1")
             }
         }
         

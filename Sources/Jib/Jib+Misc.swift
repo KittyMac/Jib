@@ -50,7 +50,7 @@ func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JS
 
 @inlinable @inline(__always)
 public func JSValueToJson(_ context: JSGlobalContextRef, _ value: JSObjectRef?) -> Hitch {
-    let jsString = JSValueCreateJSONString(context, value, 2, nil)
+    let jsString = JSValueCreateJSONString(context, value, 0, nil)
     defer { JSStringRelease(jsString) }
     return JSStringToHitch(context, jsString)
 }
