@@ -107,6 +107,7 @@ public class Jib {
     }
     
     // MARK: - JS Resolution
+    @discardableResult
     public func eval(_ script: HalfHitch) -> Bool? {
         lock.lock(); defer { lock.unlock() }
         
