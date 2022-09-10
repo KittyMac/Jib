@@ -79,7 +79,7 @@ public class JibFunction {
                     for idx in 0..<argumentCount {
                         guard let argument = arguments?[idx] else { continue }
                         parameters.append(
-                            JSValueToHitch(context, argument)
+                            JSValueToHitch(context, argument) ?? undefinedHitch
                         )
                     }
                     

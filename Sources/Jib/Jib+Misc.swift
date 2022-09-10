@@ -27,14 +27,6 @@ func JSStringToHitch(_ context: JSGlobalContextRef, _ jsString: JSStringRef?) ->
 }
 
 @inlinable @inline(__always)
-func JSValueToHitch(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Hitch {
-    guard let value = value else { return undefinedHitch }
-    let jsString = JSValueToStringCopy(context, value, nil)
-    defer { JSStringRelease(jsString) }
-    return JSStringToHitch(context, jsString)
-}
-
-@inlinable @inline(__always)
 func CreateJSString(halfhitch value: HalfHitch) -> JSStringRef? {
     guard let raw = value.raw() else { return nil }
     return JSStringCreateWithUTF8CString(raw)
@@ -49,8 +41,61 @@ func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JS
 }
 
 @inlinable @inline(__always)
-public func JSValueToJson(_ context: JSGlobalContextRef, _ value: JSObjectRef?) -> Hitch {
+public func JSValueToJson(_ context: JSGlobalContextRef, _ value: JSObjectRef?) -> Hitch? {
+    guard let value = value else { return nil }
     let jsString = JSValueCreateJSONString(context, value, 0, nil)
     defer { JSStringRelease(jsString) }
     return JSStringToHitch(context, jsString)
 }
+
+@inlinable @inline(__always)
+func JSValueToHitch(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Hitch? {
+    guard let value = value else { return nil }
+    let jsString = JSValueToStringCopy(context, value, nil)
+    defer { JSStringRelease(jsString) }
+    return JSStringToHitch(context, jsString)
+}
+
+@inlinable @inline(__always)
+public func JSValueToDecodable<T: Decodable>(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> T? {
+    guard let value = value else { return nil }
+    guard JSValueIsUndefined(context, value) == false else { return nil }
+    guard let json = JSValueToJson(context, value) else { return nil }
+    return try? JSONDecoder().decode(T.self, from: json.dataNoCopy())
+}
+
+@inlinable @inline(__always)
+public func JSValueToFunction(_ jib: Jib, _ value: JSValueRef?) -> JibFunction? {
+    guard let value = value else { return nil }
+    guard JSValueIsUndefined(jib.context, value) == false else { return nil }
+    guard JSObjectIsFunction(jib.context, value) == true else { return nil }
+    return JibFunction(jib: jib, object: value)
+}
+
+@inlinable @inline(__always)
+public func JSValueToDouble(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Double? {
+    guard let value = value else { return nil }
+    guard JSValueIsUndefined(context, value) == false else { return nil }
+    guard JSValueIsNumber(context, value) == true else { return nil }
+    return JSValueToNumber(context, value, nil)
+}
+
+@inlinable @inline(__always)
+public func JSValueToInt(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Int? {
+    guard let value = value else { return nil }
+    guard JSValueIsUndefined(context, value) == false else { return nil }
+    guard JSValueIsNumber(context, value) == true else { return nil }
+    return Int(JSValueToNumber(context, value, nil))
+}
+
+@inlinable @inline(__always)
+public func JSValueToBool(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Bool? {
+    guard let value = value else { return nil }
+    guard JSValueIsUndefined(context, value) == false else { return nil }
+    guard JSValueIsBoolean(context, value) == true else { return nil }
+    return JSValueToBoolean(context, value)
+}
+
+
+
+

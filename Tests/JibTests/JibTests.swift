@@ -108,7 +108,7 @@ final class JibTests: XCTestCase {
             return
         }
         
-        XCTAssertEqual(jib.call(helloFunc, []), "hello")
+        XCTAssertEqual(jib.call(hitch: helloFunc, []), "hello")
     }
     
     func testCallArgs1() throws {
@@ -123,7 +123,7 @@ final class JibTests: XCTestCase {
             return
         }
         
-        XCTAssertEqual(jib.call(uppercaseFunc, ["hello world"]), "HELLO WORLD")
+        XCTAssertEqual(jib.call(hitch: uppercaseFunc, ["hello world"]), "HELLO WORLD")
     }
     
     func testCallArgs2() throws {
@@ -136,7 +136,7 @@ final class JibTests: XCTestCase {
             return
         }
         
-        XCTAssertEqual(jib.call(addFunc, [2, 3]), "5")
+        XCTAssertEqual(jib.call(hitch: addFunc, [2, 3]), "5")
     }
     
     func testCallArgs3() throws {
@@ -153,7 +153,7 @@ final class JibTests: XCTestCase {
             return
         }
     
-        XCTAssertEqual(jib.call(callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
+        XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
     }
     
     func testThreadSafety() throws {
@@ -174,7 +174,7 @@ final class JibTests: XCTestCase {
                 
                 for _ in 0..<100000 {
                     queue.addOperation {
-                        XCTAssertEqual(jib.call(callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
+                        XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
                     }
                 }
             }
