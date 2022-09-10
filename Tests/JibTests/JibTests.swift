@@ -8,9 +8,22 @@ final class JibTests: XCTestCase {
     func testJson() {
         let jib = Jib()
                 
-        let result1 = jib[json: #"{a:1}"#]!
-        print(result1)
-        //XCTAssertEqual(result1, #"{a:1}"#)
+        let result1 = jib[json: #"{  a  :  1}"#]!
+        XCTAssertEqual(result1, #"{"a":1}"#)
+    }
+    
+    func testCodable() {
+        struct Config: Codable {
+            let time: Int
+            let delay: Int
+            let command: String
+        }
+        let jib = Jib()
+                
+        let result1: Config = jib[decoded: #"{time:60,delay:100,command:"run"}"#]!
+        XCTAssertEqual(result1.time, 60)
+        XCTAssertEqual(result1.delay, 100)
+        XCTAssertEqual(result1.command, "run")
     }
     
     func testResolution() {

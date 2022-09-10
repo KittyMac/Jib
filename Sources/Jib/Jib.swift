@@ -131,6 +131,23 @@ public class Jib {
     // MARK: - JS Resolution
     
     @inlinable @inline(__always)
+    public subscript<T: Decodable> (decoded exec: HalfHitch) -> T? {
+        get {
+            lock.lock(); defer { lock.unlock() }
+            
+            guard let value = resolve(exec) else { return nil }
+            guard JSValueIsUndefined(context, value) == false else { return nil }
+            
+            // Not exactly performant, but this will work in all cases...
+            let json = JSValueToJson(context, value)
+            return try? JSONDecoder().decode(T.self, from: json.dataNoCopy())
+        }
+    }
+    @inlinable @inline(__always) public subscript<T: Decodable> (decoded exec: Hitch) -> T? { get { return self[decoded: exec.halfhitch()] } }
+    @inlinable @inline(__always) public subscript<T: Decodable> (decoded exec: String) -> T? { get { return self[decoded: HalfHitch(string: exec)] } }
+    @inlinable @inline(__always) public subscript<T: Decodable> (decoded exec: StaticString) -> T? { get { return self[decoded: HalfHitch(stringLiteral: exec)] } }
+    
+    @inlinable @inline(__always)
     public subscript (function exec: HalfHitch) -> JibFunction? {
         get {
             lock.lock(); defer { lock.unlock() }
@@ -274,22 +291,40 @@ public class Jib {
             }
         }
         
-        // if that fails, attempt to resolve by evaluating it as a script
+        // JavascriptCore does not appear to evaluate object literals "{}" correctly, it will
+        // always return undefined unless it is embedded in parens first "({})". So as a
+        // last attempt try evaluating it embedded in parens
         let modifiedHitch = "({0})" << [hitch]
-        guard let raw = modifiedHitch.raw() else { return undefined }
+        if let raw = modifiedHitch.raw() {
+            let jsScript = JSStringCreateWithUTF8CString(raw)
+            defer { JSStringRelease(jsScript) }
 
-        // JavascriptCore does not appear to evaluation object literals correctly, it will
-        // always return undefined unless it is embedded in parens
-        let jsScript = JSStringCreateWithUTF8CString(raw)
-        defer { JSStringRelease(jsScript) }
-
-        var jsException: JSObjectRef? = nil
-        let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
-        if let jsException = jsException {
-            return record(exception: jsException)
+            var jsException: JSObjectRef? = nil
+            let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
+            if jsException == nil && jsValue != nil {
+                return jsValue
+            }
         }
-                
-        return jsValue ?? undefined
+        
+        // if that fails, attempt to resolve using the unmodified string
+        if let raw = hitch.raw() {
+            // JavascriptCore does not appear to evaluate object literals "{}" correctly, it will
+            // always return undefined unless it is embedded in parens first "({})"
+            let jsScript = JSStringCreateWithUTF8CString(raw)
+            defer { JSStringRelease(jsScript) }
+
+            var jsException: JSObjectRef? = nil
+            let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
+            if let jsException = jsException {
+                return record(exception: jsException)
+            }
+            
+            if jsValue != nil {
+                return jsValue
+            }
+        }
+        
+        return undefined
     }
     
     @discardableResult
