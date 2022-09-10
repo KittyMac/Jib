@@ -125,8 +125,11 @@ public class Jib {
                 
         return true
     }
+    @discardableResult
     @inlinable @inline(__always) public func eval(_ script: Hitch) -> Bool? { return eval(script.halfhitch()) }
+    @discardableResult
     @inlinable @inline(__always) public func eval(_ script: String) -> Bool? { return eval(HalfHitch(string: script)) }
+    @discardableResult
     @inlinable @inline(__always) public func eval(_ script: StaticString) -> Bool? { return eval(HalfHitch(stringLiteral: script)) }
     
     // MARK: - JS Resolution
