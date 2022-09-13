@@ -37,6 +37,8 @@ public class Jib {
         self.true = JSValueMakeBoolean(context, true)
         self.false = JSValueMakeBoolean(context, false)
         
+        set(global: "global", value: global)
+        
         printFn = new(function: "print", body: { arguments in
             for argument in arguments {
                 print(argument)

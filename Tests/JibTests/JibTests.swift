@@ -5,6 +5,20 @@ import JavaScriptCore
 
 final class JibTests: XCTestCase {
     
+    func testGlobal0() {
+        let jib = Jib()
+        jib.eval(#"global.x = 5"#)
+        let result1 = jib[int: "x"]!
+        XCTAssertEqual(result1, 5)
+    }
+    
+    func testGlobal1() {
+        let jib = Jib()
+        jib.eval(#"x = 5"#)
+        let result1 = jib[int: "global.x"]!
+        XCTAssertEqual(result1, 5)
+    }
+    
     func testJson() {
         let jib = Jib()
                 
