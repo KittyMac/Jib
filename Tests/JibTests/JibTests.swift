@@ -5,6 +5,17 @@ import JavaScriptCore
 
 final class JibTests: XCTestCase {
     
+    func testClone() {
+        let jib1 = Jib()
+        jib1.eval(#"global.x = 5"#)
+        let result1 = jib1[int: "x"]!
+        XCTAssertEqual(result1, 5)
+        
+        let jib2 = Jib(clone: jib1)
+        let result2 = jib2[int: "x"]!
+        XCTAssertEqual(result2, 5)
+    }
+    
     func testGlobal0() {
         let jib = Jib()
         jib.eval(#"global.x = 5"#)

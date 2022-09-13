@@ -31,13 +31,24 @@ public class Jib {
         JSGlobalContextRelease(context)
     }
     
-    public init() {
+    public init(clone: Jib? = nil) {
         group = JSContextGroupCreate()
         context = JSGlobalContextCreateInGroup(group, nil)
         global = JSContextGetGlobalObject(context)
         undefined = JSValueMakeUndefined(context)
         self.true = JSValueMakeBoolean(context, true)
         self.false = JSValueMakeBoolean(context, false)
+        
+        if let clone = clone,
+           let cloneGlobal = JSContextGetGlobalObject(clone.context) {
+            let names = JSObjectCopyPropertyNames(clone.context, cloneGlobal)
+            for idx in 0..<JSPropertyNameArrayGetCount(names) {
+                let name = JSPropertyNameArrayGetNameAtIndex(names, idx)
+                let value = JSObjectGetProperty(clone.context, cloneGlobal, name, nil)
+                JSObjectSetProperty(context, global, name, value, UInt32(kJSPropertyAttributeDontDelete), nil)
+            }
+            JSPropertyNameArrayRelease(names)
+        }
         
         set(global: "global", value: global)
         
