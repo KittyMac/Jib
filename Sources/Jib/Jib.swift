@@ -20,6 +20,8 @@ public class Jib {
     
     private var printFn: JibFunction? = nil
     
+    private var customFunctions: [JibFunction] = []
+    
     @usableFromInline
     let lock = NSLock()
     
@@ -88,7 +90,9 @@ public class Jib {
     public func new(function name: HalfHitch, body: @escaping JibFunctionBody) -> JibFunction? {
         lock.lock(); defer { lock.unlock() }
         
-        return JibFunction(jib: self, name: name, body: body)
+        guard let function = JibFunction(jib: self, name: name, body: body) else { return nil }
+        customFunctions.append(function)
+        return function
     }
     
     @discardableResult
