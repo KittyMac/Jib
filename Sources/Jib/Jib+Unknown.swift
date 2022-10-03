@@ -53,7 +53,7 @@ extension String: JibUnknown {
             print("FAILED TO CREATE JSVALUE FROM \(self)")
             return JSValueMakeUndefined(context)
         }
-        defer { print("CALLING DEFER"); JSStringRelease(jsString) }
+        //defer { print("CALLING DEFER"); JSStringRelease(jsString) }
         //print("1 CREATING JSVALUE FROM STRING \(self)")
         //print("2 CREATING JSVALUE FROM STRING \(hh)")
         //print("3 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
