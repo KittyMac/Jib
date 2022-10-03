@@ -58,7 +58,7 @@ extension String: JibUnknown {
         //print("2 CREATING JSVALUE FROM STRING \(hh)")
         //print("3 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
         let val = JSValueMakeString(context, jsString)
-        //print("4 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
+        print("4 CREATING JSVALUE FROM STRING \(JSValueToHitch(context, val))")
         return val!
     }
     
