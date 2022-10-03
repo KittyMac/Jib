@@ -93,6 +93,7 @@ public class Jib {
     public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: function, args)) }
     public func call(bool function: JibFunction, _ args: [JibUnknown?]) -> Bool? { return JSValueToBool(context, call(jsvalue: function, args)) }
     public func call(json function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToJson(context, call(jsvalue: function, args)) }
+    public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: function, args) != nil }
     
     public func garbageCollect() {
         lock.lock(); defer { lock.unlock() }
