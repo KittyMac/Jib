@@ -44,6 +44,23 @@ extension HitchArray: JibUnknown {
 extension String: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
+        
+        guard let jsString = self.withCString({ bytes in
+            return JSStringCreateWithUTF8CString(bytes)
+        }) else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
+        
+        defer { JSStringRelease(jsString) }
+        return JSValueMakeString(context, jsString)
+        
+        /*
+        let jsString = self.withUTF8 { bytes in
+            return JSStringCreateWithUTF8CString(bytes)
+        }
+        */
+        /*
         let hh = HalfHitch(string: self)
         guard let raw = hh.raw() else {
             print("FAILED TO CREATE JSVALUE FROM \(self)")
@@ -59,7 +76,7 @@ extension String: JibUnknown {
         print("3 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
         let val = JSValueMakeString(context, jsString)
         print("4 CREATING JSVALUE FROM STRING \(JSValueToHitch(context, val))")
-        return val!
+        return val!*/
     }
     
     @inlinable @inline(__always)
