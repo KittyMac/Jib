@@ -45,13 +45,17 @@ extension String: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         
-        let hh = Hitch(string: self)
+        let hh = HalfHitch(string: self)
         if let raw = hh.raw() {
+            print(hh.count)
             let jsString = JSStringCreateWithUTF8CString(raw)
             defer { JSStringRelease(jsString) }
+            print(hh.count)
             return JSValueMakeString(context, jsString)
         }
-                
+        
+        print(hh.count)
+        
         print("FAILED TO CREATE JSVALUE FROM \(self)")
         return JSValueMakeUndefined(context)
         
