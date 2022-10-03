@@ -125,6 +125,24 @@ final class JibTests: XCTestCase {
         }
     }
     
+    func testPassJibFunctionToFunction() {
+        let jib = Jib()
+        
+        let printFunction = jib.new(function: "print", body: { arguments in
+            for argument in arguments {
+                print(argument)
+            }
+            return nil
+        })
+        
+        guard let helloFunc = jib[function: "(function (fn,value) { fn(value); return value; })"] else {
+            XCTFail("unable to resolve function hello")
+            return
+        }
+        
+        XCTAssertEqual(jib.call(hitch: helloFunc, [printFunction, "hello world"]), "hello world")
+    }
+    
     func testCallFunction0() {
         let jib = Jib()
         

@@ -44,8 +44,14 @@ extension String: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let hh = HalfHitch(string: self)
-        guard let raw = hh.raw() else { return JSValueMakeUndefined(context) }
-        guard let jsString = JSStringCreateWithUTF8CString(raw) else { return JSValueMakeUndefined(context) }
+        guard let raw = hh.raw() else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
+        guard let jsString = JSStringCreateWithUTF8CString(raw) else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
         defer { JSStringRelease(jsString) }
         return JSValueMakeString(context, jsString)
     }
@@ -60,8 +66,14 @@ extension StaticString: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let hh = HalfHitch(stringLiteral: self)
-        guard let raw = hh.raw() else { return JSValueMakeUndefined(context) }
-        guard let jsString = JSStringCreateWithUTF8CString(raw) else { return JSValueMakeUndefined(context) }
+        guard let raw = hh.raw() else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
+        guard let jsString = JSStringCreateWithUTF8CString(raw) else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
         defer { JSStringRelease(jsString) }
         return JSValueMakeString(context, jsString)
     }
@@ -76,8 +88,14 @@ extension Hitch: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let hh = halfhitch()
-        guard let raw = hh.raw() else { return JSValueMakeUndefined(context) }
-        guard let jsString = JSStringCreateWithUTF8CString(raw) else { return JSValueMakeUndefined(context) }
+        guard let raw = hh.raw() else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
+        guard let jsString = JSStringCreateWithUTF8CString(raw) else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
         defer { JSStringRelease(jsString) }
         return JSValueMakeString(context, jsString)
     }
@@ -91,8 +109,14 @@ extension Hitch: JibUnknown {
 extension HalfHitch: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let raw = raw() else { return JSValueMakeUndefined(context) }
-        guard let jsString = JSStringCreateWithUTF8CString(raw) else { return JSValueMakeUndefined(context) }
+        guard let raw = raw() else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
+        guard let jsString = JSStringCreateWithUTF8CString(raw) else {
+            print("FAILED TO CREATE JSVALUE FROM \(self)")
+            return JSValueMakeUndefined(context)
+        }
         defer { JSStringRelease(jsString) }
         return JSValueMakeString(context, jsString)
     }
