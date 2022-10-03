@@ -52,6 +52,8 @@ extension String: JibUnknown {
             return JSValueMakeString(context, jsString)
         }
         
+        print(hh.count)
+        
         print("FAILED TO CREATE JSVALUE FROM \(self)")
         return JSValueMakeUndefined(context)
         
