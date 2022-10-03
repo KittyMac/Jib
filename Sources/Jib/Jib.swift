@@ -311,7 +311,7 @@ public class Jib {
             var jsException: JSObjectRef? = nil
             let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
             if let jsException = jsException {
-                print("resolve exception for: \(jsScript)")
+                print("resolve exception for: \(hitch)")
                 return record(exception: jsException)
             }
             
