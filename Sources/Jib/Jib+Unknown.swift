@@ -31,6 +31,7 @@ extension HitchArray: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let args = map { HalfHitchToJSValue(context, $0.halfhitch()) }
+        print("CREATING JSVALUE FROM HITCHARRAY \(self)")
         return JSObjectMakeArray(context, args.count, args, nil)
     }
     
@@ -53,6 +54,7 @@ extension String: JibUnknown {
             return JSValueMakeUndefined(context)
         }
         defer { JSStringRelease(jsString) }
+        print("CREATING JSVALUE FROM STRING \(self)")
         return JSValueMakeString(context, jsString)
     }
     
@@ -75,6 +77,7 @@ extension StaticString: JibUnknown {
             return JSValueMakeUndefined(context)
         }
         defer { JSStringRelease(jsString) }
+        print("CREATING JSVALUE FROM STATICSTRING \(self)")
         return JSValueMakeString(context, jsString)
     }
     
@@ -97,6 +100,7 @@ extension Hitch: JibUnknown {
             return JSValueMakeUndefined(context)
         }
         defer { JSStringRelease(jsString) }
+        print("CREATING JSVALUE FROM HITCH \(self)")
         return JSValueMakeString(context, jsString)
     }
     
@@ -118,6 +122,7 @@ extension HalfHitch: JibUnknown {
             return JSValueMakeUndefined(context)
         }
         defer { JSStringRelease(jsString) }
+        print("CREATING JSVALUE FROM HalfHitch\(self)")
         return JSValueMakeString(context, jsString)
     }
     
