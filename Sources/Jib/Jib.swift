@@ -76,10 +76,12 @@ public class Jib {
             print(exception ?? "unknown exception occurred")
             return nil
         }
+        convertedArgs.forEach { JSValueProtect(context, $0) }
         let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
         if let jsException = jsException {
             return record(exception: jsException)
         }
+        convertedArgs.forEach { JSValueUnprotect(context, $0) }
         return jsValue
     }
     
