@@ -71,6 +71,11 @@ public class Jib {
         lock.lock(); defer { lock.unlock() }
         var jsException: JSObjectRef? = nil
         let convertedArgs = args.map { $0?.createJibValue(self) }
+        if args.count != convertedArgs.count {
+            self.exception = "jib.call failed to convert all arguments to JSValues"
+            print(exception ?? "unknown exception occurred")
+            return nil
+        }
         let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
         if let jsException = jsException {
             return record(exception: jsException)
