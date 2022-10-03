@@ -45,6 +45,17 @@ extension String: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         
+        let hh = HalfHitch(string: self)
+        if let raw = hh.raw() {
+            let jsString = JSStringCreateWithUTF8CString(raw)
+            defer { JSStringRelease(jsString) }
+            return JSValueMakeString(context, jsString)
+        }
+        
+        print("FAILED TO CREATE JSVALUE FROM \(self)")
+        return JSValueMakeUndefined(context)
+        
+        /*
         guard let jsString = self.withCString({ bytes in
             return JSStringCreateWithUTF8CString(bytes)
         }) else {
@@ -54,6 +65,7 @@ extension String: JibUnknown {
         
         defer { JSStringRelease(jsString) }
         return JSValueMakeString(context, jsString)
+         */
         
         /*
         let jsString = self.withUTF8 { bytes in
