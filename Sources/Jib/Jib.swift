@@ -282,7 +282,6 @@ public class Jib {
             defer { JSStringRelease(jsString) }
             if let value = JSObjectGetProperty(context, global, jsString, nil),
                JSValueIsUndefined(context, value) == false {
-                print("resolve 1")
                 return value
             }
         }
@@ -298,7 +297,6 @@ public class Jib {
             var jsException: JSObjectRef? = nil
             let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
             if jsException == nil && jsValue != nil && JSValueIsUndefined(context, jsValue) == false {
-                print("resolve 2")
                 return jsValue
             }
         }
@@ -313,17 +311,15 @@ public class Jib {
             var jsException: JSObjectRef? = nil
             let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
             if let jsException = jsException {
-                print("resolve 3")
+                print("resolve exception for: \(jsScript)")
                 return record(exception: jsException)
             }
             
             if jsValue != nil {
-                print("resolve 4")
                 return jsValue
             }
         }
         
-        print("resolve 5")
         return undefined
     }
     
