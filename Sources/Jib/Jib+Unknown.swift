@@ -53,13 +53,13 @@ extension String: JibUnknown {
             print("FAILED TO CREATE JSVALUE FROM \(self)")
             return JSValueMakeUndefined(context)
         }
-        defer { JSStringRelease(jsString) }
+        defer { print("CALLING DEFER"); JSStringRelease(jsString) }
         print("1 CREATING JSVALUE FROM STRING \(self)")
         print("2 CREATING JSVALUE FROM STRING \(hh)")
         print("3 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
-        let val = JSValueMakeString(context, jsString)
+        //let val = JSValueMakeString(context, jsString)
         print("4 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
-        return val!
+        return JSValueMakeString(context, jsString)
     }
     
     @inlinable @inline(__always)
