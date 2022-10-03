@@ -103,7 +103,7 @@ public class JibFunction {
 }
 
 extension JibFunction: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         guard let objectRef = objectRef else {
             print("FAILED TO CREATE JSVALUE FROM \(self)")
@@ -112,7 +112,7 @@ extension JibFunction: JibUnknown {
         return objectRef
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }

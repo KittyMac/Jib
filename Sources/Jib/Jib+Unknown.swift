@@ -16,32 +16,32 @@ public protocol JibUnknown {
 }
 /*
 extension JibFunction: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         return self
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return self
     }
 }
 */
 extension HitchArray: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let args = map { HalfHitchToJSValue(context, $0.halfhitch()) }
         return JSObjectMakeArray(context, args.count, args, nil)
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension String: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let hh = HalfHitch(string: self)
         guard let raw = hh.raw() else {
@@ -56,14 +56,14 @@ extension String: JibUnknown {
         return JSValueMakeString(context, jsString)
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension StaticString: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let hh = HalfHitch(stringLiteral: self)
         guard let raw = hh.raw() else {
@@ -78,14 +78,14 @@ extension StaticString: JibUnknown {
         return JSValueMakeString(context, jsString)
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension Hitch: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let hh = halfhitch()
         guard let raw = hh.raw() else {
@@ -100,14 +100,14 @@ extension Hitch: JibUnknown {
         return JSValueMakeString(context, jsString)
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension HalfHitch: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         guard let raw = raw() else {
             print("FAILED TO CREATE JSVALUE FROM \(self)")
@@ -121,67 +121,67 @@ extension HalfHitch: JibUnknown {
         return JSValueMakeString(context, jsString)
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension Int: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         return JSValueMakeNumber(context, Double(self))
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension UInt: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         return JSValueMakeNumber(context, Double(self))
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension Double: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         return JSValueMakeNumber(context, self)
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension Float: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         return JSValueMakeNumber(context, Double(self))
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
 
 extension Bool: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         return JSValueMakeBoolean(context, self)
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return self ? jib.true : jib.false
     }
@@ -189,13 +189,13 @@ extension Bool: JibUnknown {
 
 /*
 extension HitchArray: JibUnknown {
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         let hitchJson = JsonElement(unknown: self.map { JsonElement(unknown: $0) } ).toHitch().halfhitch()
         return JSValueMakeFromJSONString(context, HalfHitchToJSString(context, hitchJson))
     }
     
-    // @inlinable @inline(__always)
+    @inlinable @inline(__always)
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
