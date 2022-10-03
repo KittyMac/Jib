@@ -140,18 +140,18 @@ public class Jib {
         lock.lock(); defer { lock.unlock() }
         
         // if that fails, attempt to resolve by evaluating it as a script
-        guard let raw = script.raw() else { return nil }
-        
-        let jsScript = JSStringCreateWithUTF8CString(raw)
-        defer { JSStringRelease(jsScript) }
+        return script.using { raw, count in
+            let jsScript = JSStringCreateWithUTF8CString(raw)
+            defer { JSStringRelease(jsScript) }
 
-        var jsException: JSObjectRef? = nil
-        JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
-        if let jsException = jsException {
-            return record(exception: jsException)
+            var jsException: JSObjectRef? = nil
+            JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
+            if let jsException = jsException {
+                return record(exception: jsException)
+            }
+                    
+            return true
         }
-                
-        return true
     }
     @discardableResult
     @inlinable @inline(__always) public func eval(_ script: Hitch) -> Bool? { return eval(script.halfhitch()) }
@@ -296,7 +296,7 @@ public class Jib {
         // always return undefined unless it is embedded in parens first "({})". So as a
         // last attempt try evaluating it embedded in parens
         let modifiedHitch = "({0})" << [hitch]
-        if let raw = modifiedHitch.raw() {
+        if let returnValue: JSValueRef? = modifiedHitch.using({ raw, count in
             let jsScript = JSStringCreateWithUTF8CString(raw)
             defer { JSStringRelease(jsScript) }
 
@@ -305,10 +305,13 @@ public class Jib {
             if jsException == nil && jsValue != nil && JSValueIsUndefined(context, jsValue) == false {
                 return jsValue
             }
+            return nil
+        }) {
+            return returnValue
         }
         
         // if that fails, attempt to resolve using the unmodified string
-        if let raw = hitch.raw() {
+        if let returnValue: JSValueRef? = hitch.using({ raw, count in
             // JavascriptCore does not appear to evaluate object literals "{}" correctly, it will
             // always return undefined unless it is embedded in parens first "({})"
             let jsScript = JSStringCreateWithUTF8CString(raw)
@@ -324,6 +327,9 @@ public class Jib {
             if jsValue != nil {
                 return jsValue
             }
+            return nil
+        }) {
+            return returnValue
         }
         
         return undefined

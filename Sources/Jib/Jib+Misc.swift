@@ -21,23 +21,29 @@ func JSStringToHitch(_ context: JSGlobalContextRef, _ jsString: JSStringRef?) ->
     guard let jsString = jsString else { return undefinedHitch }
     let size = JSStringGetMaximumUTF8CStringSize(jsString)
     let result = Hitch(garbage: size)
-    guard let raw = result.mutableRaw() else { return undefinedHitch }
-    result.count = JSStringGetUTF8CString(jsString, raw, size) - 1
-    return result
+    if let returnValue: Hitch = result.mutableUsing({ mutableRaw, count in
+        result.count = JSStringGetUTF8CString(jsString, mutableRaw, size) - 1
+        return result
+    }) {
+        return returnValue
+    }
+    return undefinedHitch
 }
 
 @inlinable @inline(__always)
 func CreateJSString(halfhitch value: HalfHitch) -> JSStringRef? {
-    guard let raw = value.raw() else { return nil }
-    return JSStringCreateWithUTF8CString(raw)
+    return value.using { raw, count in
+        return JSStringCreateWithUTF8CString(raw)
+    }
 }
 
 @inlinable @inline(__always)
 func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JSStringRef? {
-    guard let raw = value.raw() else { return nil }
-    let jsString = JSStringCreateWithUTF8CString(raw)
-    defer { JSStringRelease(jsString) }
-    return JSValueMakeString(context, jsString)
+    return value.using { raw, count in
+        let jsString = JSStringCreateWithUTF8CString(raw)
+        defer { JSStringRelease(jsString) }
+        return JSValueMakeString(context, jsString)
+    }
 }
 
 @inlinable @inline(__always)

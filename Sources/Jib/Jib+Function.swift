@@ -106,7 +106,6 @@ extension JibFunction: JibUnknown {
     @inlinable @inline(__always)
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         guard let objectRef = objectRef else {
-            print("FAILED TO CREATE JSVALUE FROM \(self)")
             return JSValueMakeUndefined(context)
         }
         return objectRef
