@@ -70,7 +70,9 @@ public class Jib {
     private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
         lock.lock(); defer { lock.unlock() }
         var jsException: JSObjectRef? = nil
+        print("ARGS1: \(args)")
         let convertedArgs = args.map { $0?.createJibValue(self) }
+        print("ARGS2: \(convertedArgs)")
         let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
         if let jsException = jsException {
             return record(exception: jsException)
