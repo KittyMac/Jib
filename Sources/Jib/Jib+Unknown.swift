@@ -56,7 +56,7 @@ extension String: JibUnknown {
         //defer { print("CALLING DEFER"); JSStringRelease(jsString) }
         //print("1 CREATING JSVALUE FROM STRING \(self)")
         //print("2 CREATING JSVALUE FROM STRING \(hh)")
-        //print("3 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
+        print("3 CREATING JSVALUE FROM STRING \(JSStringToHitch(context, jsString))")
         let val = JSValueMakeString(context, jsString)
         print("4 CREATING JSVALUE FROM STRING \(JSValueToHitch(context, val))")
         return val!
