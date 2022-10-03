@@ -297,7 +297,7 @@ public class Jib {
 
             var jsException: JSObjectRef? = nil
             let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
-            if jsException == nil && jsValue != nil {
+            if jsException == nil && jsValue != nil && JSValueIsUndefined(context, jsValue) == false {
                 print("resolve 2")
                 return jsValue
             }
