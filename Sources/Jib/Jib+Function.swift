@@ -7,75 +7,102 @@ import CJSCore
 import Foundation
 import Hitch
 
-private let callbacksLock = NSLock()
-private var callbacksShared: [Int: JibFunctionBody] = [:]
-private var callbacksID: Int = 0
-private let callbacksProperyName = CreateJSString(halfhitch: "__uuid")
-
-private func registerCallback(body: @escaping JibFunctionBody) -> Int {
-    callbacksLock.lock(); defer { callbacksLock.unlock() }
-    
-    callbacksID += 1
-    
-    let myCallbackId = callbacksID
-    callbacksShared[myCallbackId] = body
-    
-    return myCallbackId
-}
-
-private func unregisterCallback(callbackID: Int) {
-    callbacksLock.lock()
-    callbacksShared.removeValue(forKey: callbackID)
-    callbacksLock.unlock()
-}
+private let jibCallbackProperyName = CreateJSString(halfhitch: "__jib_block")
 
 public typealias JibFunctionBody = ([Hitch]) -> JibUnknown?
 
+@usableFromInline
+typealias AnyPtr = UnsafeMutableRawPointer?
+
+@usableFromInline
+class JibBody {
+    @usableFromInline
+    var block: JibFunctionBody?
+    
+    @usableFromInline
+    init(_ block: @escaping JibFunctionBody) {
+        self.block = block
+    }
+
+    @inlinable @inline(__always)
+    func set(_ block: @escaping JibFunctionBody) {
+        self.block = block
+    }
+
+    @inlinable @inline(__always)
+    func run(parameters: [Hitch]) -> JibUnknown? {
+        return block?(parameters)
+    }
+}
+
+@inlinable @inline(__always)
+func MakeRetainedPtr <T: AnyObject>(_ obj: T) -> AnyPtr {
+    return Unmanaged.passRetained(obj).toOpaque()
+}
+
+@inlinable @inline(__always)
+func MakeRetainedClass <T: AnyObject>(_ ptr: AnyPtr) -> T? {
+    guard let ptr = ptr else { return nil }
+    return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
+}
+
+@inlinable @inline(__always)
+func MakeReleasedClass <T: AnyObject>(_ ptr: AnyPtr) -> T? {
+    guard let ptr = ptr else { return nil }
+    return Unmanaged<T>.fromOpaque(ptr).takeRetainedValue()
+}
+
 public class JibFunction {
-    let myCallbackId: Int
+    @usableFromInline
+    let jsClass: JSClassRef
     
     @usableFromInline
     let objectRef: JSObjectRef?
+    
+    @usableFromInline
+    let bodyPtr: AnyPtr
     
     weak var jib: Jib?
     
     deinit {
         if let jib = jib {
             JSValueUnprotect(jib.context, objectRef)
+            let _: JibBody? = MakeReleasedClass(bodyPtr)
         }
-        
-        unregisterCallback(callbackID: myCallbackId)
     }
     
     @usableFromInline
     init?(jib: Jib, object: JSObjectRef) {
         self.jib = jib
-        
+
         objectRef = object
-        myCallbackId = -1
+        
+        self.bodyPtr = JSObjectGetPrivate(objectRef)
         
         JSValueProtect(jib.context, objectRef)
+        
+        var classDefinition = kJSClassDefinitionEmpty
+        jsClass = JSClassCreate(&classDefinition)
     }
     
     @usableFromInline
     init?(jib: Jib, name: HalfHitch, body: @escaping JibFunctionBody) {
         self.jib = jib
         
-        myCallbackId = registerCallback(body: body)
+        var classDefinition = kJSClassDefinitionEmpty
+        jsClass = JSClassCreate(&classDefinition)
+        
+        bodyPtr = MakeRetainedPtr(JibBody(body))
         
         let functionName = CreateJSString(halfhitch: name)
         defer { JSStringRelease(functionName) }
         
         objectRef = JSObjectMakeFunctionWithCallback(jib.context, functionName) { context, function, thisObject, argumentCount, arguments, exception in
             if let context = context {
-                let myCallbackIdValue = JSObjectGetProperty(context, function, callbacksProperyName, nil)
-                let myCallbackId = Int(JSValueToNumber(context, myCallbackIdValue, nil))
+                let myCallbackIdValue = JSObjectGetProperty(context, function, jibCallbackProperyName, nil)
+                let bodyPtr = JSObjectGetPrivate(myCallbackIdValue)
                 
-                callbacksLock.lock()
-                let callback = callbacksShared[myCallbackId]
-                callbacksLock.unlock()
-                
-                if let callback = callback {
+                if let jibBody: JibBody = MakeRetainedClass(bodyPtr) {
                     var parameters: [Hitch] = []
                     
                     for idx in 0..<argumentCount {
@@ -85,7 +112,7 @@ public class JibFunction {
                         )
                     }
                     
-                    let result = callback(parameters)
+                    let result = jibBody.run(parameters: parameters)
                     
                     return result?.createJibValue(context)
                 }
@@ -98,7 +125,9 @@ public class JibFunction {
             return nil
         }
         
-        JSObjectSetProperty(jib.context, objectRef, callbacksProperyName, myCallbackId.createJibValue(jib), 0, nil)
+        let bodyObject = JSObjectMake(jib.context, jsClass, bodyPtr)
+        
+        JSObjectSetProperty(jib.context, objectRef, jibCallbackProperyName, bodyObject, 0, nil)
         
         JSValueProtect(jib.context, objectRef)
     }
