@@ -67,13 +67,15 @@ public class JibFunction {
         defer { JSStringRelease(functionName) }
         
         objectRef = JSObjectMakeFunctionWithCallback(jib.context, functionName) { context, function, thisObject, argumentCount, arguments, exception in
-            callbacksLock.lock(); defer { callbacksLock.unlock() }
-            
             if let context = context {
                 let myCallbackIdValue = JSObjectGetProperty(context, function, callbacksProperyName, nil)
                 let myCallbackId = Int(JSValueToNumber(context, myCallbackIdValue, nil))
                 
-                if let callback = callbacksShared[myCallbackId] {
+                callbacksLock.lock()
+                let callback = callbacksShared[myCallbackId]
+                callbacksLock.unlock()
+                
+                if let callback = callback {
                     var parameters: [Hitch] = []
                     
                     for idx in 0..<argumentCount {

@@ -1,7 +1,12 @@
 import XCTest
 import Jib
 import Hitch
+
+#if canImport(JavaScriptCore)
 import JavaScriptCore
+#else
+import CJSCore
+#endif
 
 final class JibTests: XCTestCase {
     
@@ -228,12 +233,38 @@ final class JibTests: XCTestCase {
                 
                 for _ in 0..<100000 {
                     queue.addOperation {
-                        XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
+                        let result = jib.call(hitch: callbackFunc, ["hello world", swiftUppercase])
+                        XCTAssertEqual(result, "HELLO WORLD")
                     }
                 }
             }
         }
         
+        queue.waitUntilAllOperationsAreFinished()
+    }
+    
+    func testParallelJib() throws {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 20
+
+        for _ in 0..<queue.maxConcurrentOperationCount {
+            queue.addOperation {
+                let jib = Jib()
+                
+                let sleepFunction = jib.new(function: "sleep") { args in
+                    sleep(3)
+                    return nil
+                }!
+                
+                jib.set(global: "sleep", value: sleepFunction)
+                
+                let start = Date()
+                jib.eval("""
+                    sleep(3)
+                """)
+                print("concurrent js time: \(abs(start.timeIntervalSinceNow))")
+            }
+        }
         queue.waitUntilAllOperationsAreFinished()
     }
     
