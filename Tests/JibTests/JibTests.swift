@@ -252,7 +252,7 @@ final class JibTests: XCTestCase {
                 let jib = Jib()
                 
                 let sleepFunction = jib.new(function: "sleep") { args in
-                    sleep(3)
+                    Thread.sleep(forTimeInterval: 3.0)
                     return nil
                 }!
                 
