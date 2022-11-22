@@ -13,6 +13,28 @@ let jibTargets: [Target] = [
         ]
     )
 ]
+#elseif os(Windows)
+let jibTargets: [Target] = [
+    .target(
+        name: "CJSCore",
+        linkerSettings: [
+            .linkedLibrary("Kernel32", .when(platforms: [.windows])),
+            .linkedLibrary("JavaScriptCore", .when(platforms: [.windows])),
+            .linkedLibrary("CoreFoundation", .when(platforms: [.windows])),
+            .linkedLibrary("WTF", .when(platforms: [.windows])),
+            .linkedLibrary("ASL", .when(platforms: [.windows])),
+        ]
+    ),
+    .target(
+        name: "Jib",
+        dependencies: [
+            "CJSCore",
+            "Hitch",
+            "Spanker",
+            "Chronometer"
+        ]
+    ),
+]
 #else
 let jibTargets: [Target] = [
     .target(
