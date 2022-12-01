@@ -46,7 +46,6 @@ let package = Package(
     ],
     products: [
         .library( name: "Jib", targets: ["Jib"]),
-        .library( name: "JibLib", type: .dynamic, targets: ["Jib"]),
     ],
     dependencies: [
         .package(url: "https://github.com/KittyMac/Chronometer.git", from: "0.1.0"),
