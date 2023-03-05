@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KittyMac/Chronometer.git",
       "state" : {
-        "revision" : "2bb103acaafa5099950cb6af9ed3b65e1ce14834",
-        "version" : "0.1.7"
+        "revision" : "742a6a58714e6c134d635abc589dbca9526099c3",
+        "version" : "0.1.9"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KittyMac/Hitch.git",
       "state" : {
-        "revision" : "600ff22a394b7d86c00bbcada76a8d8dcf0574c9",
-        "version" : "0.4.93"
+        "revision" : "d360da4c21a41315281bb21a6d347dba9839cad0",
+        "version" : "0.4.97"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KittyMac/Spanker.git",
       "state" : {
-        "revision" : "0f89ec839269f09c14e3ae722de23822815577bf",
-        "version" : "0.2.30"
+        "revision" : "1d11bc1a548c623a806af547dd2346c51b48a46c",
+        "version" : "0.2.32"
       }
     }
   ],

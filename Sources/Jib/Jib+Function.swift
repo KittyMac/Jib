@@ -65,9 +65,10 @@ public class JibFunction {
     weak var jib: Jib?
     
     deinit {
+        let _: JibBody? = MakeReleasedClass(bodyPtr)
+        
         if let jib = jib {
             JSValueUnprotect(jib.context, objectRef)
-            let _: JibBody? = MakeReleasedClass(bodyPtr)
         }
     }
     
