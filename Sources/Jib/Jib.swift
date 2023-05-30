@@ -87,7 +87,7 @@ public class Jib {
     public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? { return JSValueToFunction(self, call(jsvalue: function, args)) }
     public func call(hitch function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToHitch(context, call(jsvalue: function, args)) }
     public func call(halfhitch function: JibFunction, _ args: [JibUnknown?]) -> HalfHitch? { return JSValueToHitch(context, call(jsvalue: function, args))?.halfhitch() }
-    public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: function, args))?.description }
+    public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: function, args))?.toString() }
     public func call(date function: JibFunction, _ args: [JibUnknown?]) -> Date? { return JSValueToHitch(context, call(jsvalue: function, args))?.description.date() }
     public func call(double function: JibFunction, _ args: [JibUnknown?]) -> Double? { return JSValueToDouble(context, call(jsvalue: function, args)) }
     public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: function, args)) }
@@ -212,7 +212,7 @@ public class Jib {
     public subscript (string exec: HalfHitch) -> String? {
         get {
             lock.lock(); defer { lock.unlock() }
-            return JSValueToHitch(context, resolve(exec))?.description
+            return JSValueToHitch(context, resolve(exec))?.toString()
         }
     }
     @inlinable @inline(__always) public subscript (string exec: Hitch) -> String? { get { return self[string: exec.halfhitch()] } }
