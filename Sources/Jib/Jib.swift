@@ -88,7 +88,7 @@ public class Jib {
     public func call(hitch function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToHitch(context, call(jsvalue: function, args)) }
     public func call(halfhitch function: JibFunction, _ args: [JibUnknown?]) -> HalfHitch? { return JSValueToHitch(context, call(jsvalue: function, args))?.halfhitch() }
     public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: function, args))?.toString() }
-    public func call(date function: JibFunction, _ args: [JibUnknown?]) -> Date? { return JSValueToHitch(context, call(jsvalue: function, args))?.description.date() }
+    public func call(date function: JibFunction, _ args: [JibUnknown?]) -> Date? { return JSValueToHitch(context, call(jsvalue: function, args))?.toString().date() }
     public func call(double function: JibFunction, _ args: [JibUnknown?]) -> Double? { return JSValueToDouble(context, call(jsvalue: function, args)) }
     public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: function, args)) }
     public func call(bool function: JibFunction, _ args: [JibUnknown?]) -> Bool? { return JSValueToBool(context, call(jsvalue: function, args)) }
@@ -223,7 +223,7 @@ public class Jib {
     public subscript (date exec: HalfHitch) -> Date? {
         get {
             guard let value = self[hitch: exec] else { return nil }
-            return value.description.date()
+            return value.toString().date()
         }
     }
     @inlinable @inline(__always) public subscript (date exec: Hitch) -> Date? { get { return self[date: exec.halfhitch()] } }
