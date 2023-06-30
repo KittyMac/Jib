@@ -67,6 +67,8 @@ public class JibFunction {
     deinit {
         let _: JibBody? = MakeReleasedClass(bodyPtr)
         
+        JSClassRelease(jsClass)
+        
         if let jib = jib {
             JSValueUnprotect(jib.context, objectRef)
         }
