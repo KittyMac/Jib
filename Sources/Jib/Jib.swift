@@ -8,9 +8,33 @@ import Foundation
 import Hitch
 import Chronometer
 
+// Note: JSC will run deferred tasks (like garbage collection) on the thread which
+// creates the JSContextGroupCreate. Jib will create a dedicated thread for this
+// and all jibs will use the same JSContextGroupCreate
+fileprivate var sharedGroup: JSContextGroupRef? = nil
+fileprivate let groupLock = NSLock()
+fileprivate func getSharedContextGroupRef() -> JSContextGroupRef {
+    groupLock.lock(); defer { groupLock.unlock() }
+    guard let sharedGroup = sharedGroup else {
+        let dispatchGroup = DispatchGroup()
+        
+        dispatchGroup.enter()
+        Thread {
+            let localGroup = JSContextGroupCreate()!
+            sharedGroup = localGroup
+            dispatchGroup.leave()
+        }.start()
+        dispatchGroup.wait()
+        
+        return sharedGroup!
+    }
+    return sharedGroup
+}
+
 public class Jib {
-    public let context: JSGlobalContextRef
+    
     public let group: JSContextGroupRef
+    public let context: JSGlobalContextRef
     public let global: JSObjectRef
     public let undefined: JSObjectRef
     public let `true`: JSObjectRef
@@ -27,12 +51,11 @@ public class Jib {
     
     deinit {
         lock.lock(); defer { lock.unlock() }
-        JSContextGroupRelease(group)
         JSGlobalContextRelease(context)
     }
     
     public init(clone: Jib? = nil) {
-        group = JSContextGroupCreate()
+        group = getSharedContextGroupRef()
         context = JSGlobalContextCreateInGroup(group, nil)
         global = JSContextGetGlobalObject(context)
         undefined = JSValueMakeUndefined(context)
