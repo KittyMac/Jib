@@ -8,7 +8,6 @@ let jibTargets: [Target] = [
         name: "Jib",
         dependencies: [
             "Hitch",
-            "Spanker",
             "Chronometer"
         ]
     )
@@ -32,7 +31,6 @@ let jibTargets: [Target] = [
         dependencies: [
             "CJSCore",
             "Hitch",
-            "Spanker",
             "Chronometer"
         ]
     ),
@@ -49,8 +47,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/KittyMac/Chronometer.git", from: "0.1.0"),
-        .package(url: "https://github.com/KittyMac/Hitch.git", from: "0.4.0"),
-        .package(url: "https://github.com/KittyMac/Spanker.git", from: "0.2.0"),
+        .package(url: "https://github.com/KittyMac/Hitch.git", from: "0.4.0")
     ],
     targets: jibTargets + [
         .testTarget(

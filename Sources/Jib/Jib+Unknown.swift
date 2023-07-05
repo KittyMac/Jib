@@ -6,7 +6,6 @@ import CJSCore
 
 import Foundation
 import Hitch
-import Spanker
 
 typealias HitchArray = [Hitch]
 
@@ -176,17 +175,3 @@ extension Bool: JibUnknown {
     }
 }
 
-/*
-extension HitchArray: JibUnknown {
-    @inlinable @inline(__always)
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        let hitchJson = JsonElement(unknown: self.map { JsonElement(unknown: $0) } ).toHitch().halfhitch()
-        return JSValueMakeFromJSONString(context, HalfHitchToJSString(context, hitchJson))
-    }
-    
-    @inlinable @inline(__always)
-    public func createJibValue(_ jib: Jib) -> JibValue {
-        return createJibValue(jib.context)
-    }
-}
-*/

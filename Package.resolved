@@ -14,17 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KittyMac/Hitch.git",
       "state" : {
-        "revision" : "f775d6fb66472716b0c5080db13b1cacd29441f9",
-        "version" : "0.4.107"
-      }
-    },
-    {
-      "identity" : "spanker",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/KittyMac/Spanker.git",
-      "state" : {
-        "revision" : "6287aebdb7cb64787b7a6790bfef860ccb55e0ef",
-        "version" : "0.2.33"
+        "revision" : "377070db13a48be7564d456e7262ee2cb5f68de7",
+        "version" : "0.4.110"
       }
     }
   ],
