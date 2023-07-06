@@ -24,29 +24,29 @@ class JibBody {
         self.block = block
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     func set(_ block: @escaping JibFunctionBody) {
         self.block = block
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     func run(parameters: [Hitch]) -> JibUnknown? {
         return block?(parameters)
     }
 }
 
-@inlinable @inline(__always)
+@inlinable
 func MakeRetainedPtr <T: AnyObject>(_ obj: T) -> AnyPtr {
     return Unmanaged.passRetained(obj).toOpaque()
 }
 
-@inlinable @inline(__always)
+@inlinable
 func MakeRetainedClass <T: AnyObject>(_ ptr: AnyPtr) -> T? {
     guard let ptr = ptr else { return nil }
     return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
 }
 
-@inlinable @inline(__always)
+@inlinable
 func MakeReleasedClass <T: AnyObject>(_ ptr: AnyPtr) -> T? {
     guard let ptr = ptr else { return nil }
     return Unmanaged<T>.fromOpaque(ptr).takeRetainedValue()
@@ -137,7 +137,7 @@ public class JibFunction {
 }
 
 extension JibFunction: JibUnknown {
-    @inlinable @inline(__always)
+    @inlinable
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         guard let objectRef = objectRef else {
             return JSValueMakeUndefined(context)
@@ -145,7 +145,7 @@ extension JibFunction: JibUnknown {
         return objectRef
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
