@@ -74,7 +74,7 @@ public class Jib {
         let convertedArgs = args.map { $0?.createJibValue(self) }
         if args.count != convertedArgs.count {
             self.exception = "jib.call failed to convert all arguments to JSValues"
-            print(exception ?? "unknown exception occurred")
+            // print(exception ?? "unknown exception occurred")
             return nil
         }
         let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
@@ -321,7 +321,7 @@ public class Jib {
             var jsException: JSObjectRef? = nil
             let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
             if let jsException = jsException {
-                print("resolve exception for: \(hitch)")
+                // print("resolve exception for: \(hitch)")
                 return record(exception: jsException)
             }
             
@@ -340,7 +340,7 @@ public class Jib {
     @inlinable
     func record<T>(exception jsException: JSObjectRef) -> T? {
         self.exception = JSValueToHitch(context, jsException)
-        print(exception ?? "unknown exception occurred")
+        // print(exception ?? "unknown exception occurred")
         return nil
     }
 }
