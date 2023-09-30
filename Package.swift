@@ -17,7 +17,7 @@ let jibTargets: [Target] = [
     .target(
         name: "CJSCore",
         linkerSettings: [
-            .linkedLibrary("javascriptcoregtk-4.0", .when(platforms: [.linux])),
+            .linkedLibrary("javascriptcoregtk-4.1", .when(platforms: [.linux])),
             .linkedLibrary("Kernel32", .when(platforms: [.windows])),
             .linkedLibrary("JavaScriptCore", .when(platforms: [.windows])),
             .linkedLibrary("CoreFoundation", .when(platforms: [.windows])),

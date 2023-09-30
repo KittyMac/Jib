@@ -1,15 +1,13 @@
-FROM swift:5.7.1-focal as builder
+FROM fedora:37 as builder
 
-RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
-    apt-get install -y \
-    libpq-dev \
-    libpng-dev \
-    libjpeg-dev \
-    libjavascriptcoregtk-4.0-dev \
-    libatomic1
+RUN dnf install -y \
+    git \
+    unzip \
+    swift-lang-5.7-1.fc37 \
+    javascriptcoregtk4.1-devel \
+    libatomic_ops
 
-RUN rm -rf /var/lib/apt/lists/*
-
+RUN ln -s /usr/libexec/swift/*/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so
 
 WORKDIR /root/Jib
 COPY ./Makefile ./Makefile
