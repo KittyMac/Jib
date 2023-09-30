@@ -4,7 +4,7 @@ RUN dnf install -y \
     git \
     unzip \
     swift-lang-5.7-1.fc37 \
-    javascriptcoregtk4.1-devel \
+    javascriptcoregtk4.0-devel \
     libatomic_ops
 
 RUN ln -s /usr/libexec/swift/*/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so

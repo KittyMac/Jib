@@ -1,0 +1,21 @@
+FROM fedora:38 as builder
+
+RUN dnf install -y \
+    git \
+    unzip \
+    swift-lang-5.7.3-2.fc38 \
+    javascriptcoregtk4.1-devel \
+    libatomic_ops
+
+RUN ln -s /usr/libexec/swift/*/lib/libsourcekitdInProc.so /usr/lib/libsourcekitdInProc.so
+
+WORKDIR /root/Jib
+COPY ./Makefile ./Makefile
+COPY ./Package.resolved ./Package.resolved
+COPY ./Package.swift ./Package.swift
+COPY ./Sources ./Sources
+COPY ./Tests ./Tests
+
+RUN swift package update
+RUN swift build --configuration release
+RUN swift test -v

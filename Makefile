@@ -28,4 +28,8 @@ docker:
 	-docker buildx use cluster_builder203
 	-docker buildx inspect --bootstrap
 	-docker login
-	docker buildx build --platform linux/amd64,linux/arm64 --push -t kittymac/jib .
+	docker buildx build --file Dockerfile-focal --platform linux/amd64,linux/arm64 --push -t kittymac/jib .
+	docker buildx build --file Dockerfile-fedora37 --platform linux/amd64,linux/arm64 --push -t kittymac/jib .
+	docker buildx build --file Dockerfile-fedora38 --platform linux/amd64,linux/arm64 --push -t kittymac/jib .
+
+# docker run --rm -it --entrypoint bash fedora:37

@@ -1,6 +1,7 @@
 // swift-tools-version: 5.6
 
 import PackageDescription
+import Foundation
 
 #if canImport(JavaScriptCore)
 let jibTargets: [Target] = [
@@ -13,17 +14,17 @@ let jibTargets: [Target] = [
     )
 ]
 #else
+
+var jscLibrary = "javascriptcoregtk-4.0"
+if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.1") {
+    jscLibrary = "javascriptcoregtk-4.1"
+}
+
 let jibTargets: [Target] = [
     .target(
         name: "CJSCore",
         linkerSettings: [
-            .linkedLibrary("javascriptcoregtk-4.1", .when(platforms: [.linux])),
-            .linkedLibrary("Kernel32", .when(platforms: [.windows])),
-            .linkedLibrary("JavaScriptCore", .when(platforms: [.windows])),
-            .linkedLibrary("CoreFoundation", .when(platforms: [.windows])),
-            .linkedLibrary("WTF", .when(platforms: [.windows])),
-            .linkedLibrary("ASL", .when(platforms: [.windows])),
-
+            .linkedLibrary(jscLibrary, .when(platforms: [.linux]))
         ]
     ),
     .target(
