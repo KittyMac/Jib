@@ -41,8 +41,11 @@ func CreateJSString(halfhitch value: HalfHitch) -> JSStringRef? {
 func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JSStringRef? {
     return value.using { raw, count in
         let jsString = JSStringCreateWithUTF8CString(raw)
-        defer { JSStringRelease(jsString) }
-        return JSValueMakeString(context, jsString)
+        guard let result = JSValueMakeString(context, jsString) else {
+            return nil
+        }
+        JSStringRelease(jsString)
+        return result
     }
 }
 
@@ -50,16 +53,18 @@ func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JS
 public func JSValueToJson(_ context: JSGlobalContextRef, _ value: JSObjectRef?) -> Hitch? {
     guard let value = value else { return nil }
     let jsString = JSValueCreateJSONString(context, value, 0, nil)
-    defer { JSStringRelease(jsString) }
-    return JSStringToHitch(context, jsString)
+    let result = JSStringToHitch(context, jsString)
+    JSStringRelease(jsString)
+    return result
 }
 
 @inlinable
 func JSValueToHitch(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Hitch? {
     guard let value = value else { return nil }
     let jsString = JSValueToStringCopy(context, value, nil)
-    defer { JSStringRelease(jsString) }
-    return JSStringToHitch(context, jsString)
+    let result = JSStringToHitch(context, jsString)
+    JSStringRelease(jsString)
+    return result
 }
 
 @inlinable

@@ -48,8 +48,11 @@ extension String: JibUnknown {
             return JSValueMakeUndefined(context)
         }
         
-        defer { JSStringRelease(jsString) }
-        return JSValueMakeString(context, jsString)
+        guard let result = JSValueMakeString(context, jsString) else {
+            return JSValueMakeUndefined(context)
+        }
+        JSStringRelease(jsString)
+        return result
     }
     
     @inlinable
@@ -67,8 +70,11 @@ extension StaticString: JibUnknown {
             return JSValueMakeUndefined(context)
         }
         
-        defer { JSStringRelease(jsString) }
-        return JSValueMakeString(context, jsString)
+        guard let result = JSValueMakeString(context, jsString) else {
+            return JSValueMakeUndefined(context)
+        }
+        JSStringRelease(jsString)
+        return result
     }
     
     @inlinable
@@ -86,8 +92,11 @@ extension Hitch: JibUnknown {
             return JSValueMakeUndefined(context)
         }
         
-        defer { JSStringRelease(jsString) }
-        return JSValueMakeString(context, jsString)
+        guard let result = JSValueMakeString(context, jsString) else {
+            return JSValueMakeUndefined(context)
+        }
+        JSStringRelease(jsString)
+        return result
     }
     
     @inlinable
@@ -99,14 +108,13 @@ extension Hitch: JibUnknown {
 extension HalfHitch: JibUnknown {
     @inlinable
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let raw = raw() else {
+        guard let raw = raw(),
+              let jsString = JSStringCreateWithUTF8CString(raw),
+              let result = JSValueMakeString(context, jsString) else {
             return JSValueMakeUndefined(context)
         }
-        guard let jsString = JSStringCreateWithUTF8CString(raw) else {
-            return JSValueMakeUndefined(context)
-        }
-        defer { JSStringRelease(jsString) }
-        return JSValueMakeString(context, jsString)
+        JSStringRelease(jsString)
+        return result
     }
     
     @inlinable
