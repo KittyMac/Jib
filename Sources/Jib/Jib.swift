@@ -13,8 +13,13 @@ extension Hitch {
     func jsString<T>(_ callback: (JSStringRef) -> (T?)) -> T? {
         return self.using { raw, count in
             guard let raw = raw else { return nil }
-            guard let jsstring = JSStringCreateWithUTF8CString(raw) else { return nil }
-            return callback(jsstring)
+            // Note: it should not be possible for a hitch to not be null terminated, however
+            // we are putting this in as a safety measure
+            if raw[count] == 0 {
+                guard let jsstring = JSStringCreateWithUTF8CString(raw) else { return nil }
+                return callback(jsstring)
+            }
+            return nil
         }
     }
 }
