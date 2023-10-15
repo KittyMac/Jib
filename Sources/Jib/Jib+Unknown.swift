@@ -42,8 +42,8 @@ extension HitchArray: JibUnknown {
 extension String: JibUnknown {
     @inlinable
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let jsString = HalfHitch(string: self).using({ bytes in
-            return JSStringCreateWithUTF8CString(bytes)
+        guard let jsString = HalfHitch(string: self).jsString({ jsString in
+            return jsString
         }) else {
             return JSValueMakeUndefined(context)
         }
@@ -64,8 +64,8 @@ extension String: JibUnknown {
 extension StaticString: JibUnknown {
     @inlinable
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let jsString = HalfHitch(stringLiteral: self).using({ bytes in
-            return JSStringCreateWithUTF8CString(bytes)
+        guard let jsString = HalfHitch(stringLiteral: self).jsString({ jsString in
+            return jsString
         }) else {
             return JSValueMakeUndefined(context)
         }
@@ -86,8 +86,8 @@ extension StaticString: JibUnknown {
 extension Hitch: JibUnknown {
     @inlinable
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let jsString = halfhitch().using({ bytes in
-            return JSStringCreateWithUTF8CString(bytes)
+        guard let jsString = jsString({ jsString in
+            return jsString
         }) else {
             return JSValueMakeUndefined(context)
         }
@@ -108,9 +108,13 @@ extension Hitch: JibUnknown {
 extension HalfHitch: JibUnknown {
     @inlinable
     public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let raw = raw(),
-              let jsString = JSStringCreateWithUTF8CString(raw),
-              let result = JSValueMakeString(context, jsString) else {
+        guard let jsString = jsString({ jsString in
+            return jsString
+        }) else {
+            return JSValueMakeUndefined(context)
+        }
+        
+        guard let result = JSValueMakeString(context, jsString) else {
             return JSValueMakeUndefined(context)
         }
         JSStringRelease(jsString)

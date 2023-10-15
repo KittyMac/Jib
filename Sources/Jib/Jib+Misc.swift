@@ -32,19 +32,18 @@ func JSStringToHitch(_ context: JSGlobalContextRef, _ jsString: JSStringRef?) ->
 
 @inlinable
 func CreateJSString(halfhitch value: HalfHitch) -> JSStringRef? {
-    return value.using { raw, count in
-        return JSStringCreateWithUTF8CString(raw)
+    return value.jsString { jsString in
+        return jsString
     }
 }
 
 @inlinable
 func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JSStringRef? {
-    return value.using { raw, count in
-        let jsString = JSStringCreateWithUTF8CString(raw)
+    return value.jsString { jsString in
+        defer { JSStringRelease(jsString) }
         guard let result = JSValueMakeString(context, jsString) else {
             return nil
         }
-        JSStringRelease(jsString)
         return result
     }
 }

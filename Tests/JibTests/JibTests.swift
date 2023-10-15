@@ -10,6 +10,16 @@ import CJSCore
 
 final class JibTests: XCTestCase {
     
+    func testNullTerminatedHalfHitch() {
+        let scriptWhole: Hitch = "1234567890global.x = 5123456789"
+        let scriptPart: HalfHitch = HalfHitch(source: scriptWhole, from: 10, to: 22)
+        
+        let jib1 = Jib()
+        jib1.eval(scriptPart)
+        let result1 = jib1[int: "x"]!
+        XCTAssertEqual(result1, 5)
+    }
+    
     func testClone() {
         let jib1 = Jib()
         jib1.eval(#"global.x = 5"#)

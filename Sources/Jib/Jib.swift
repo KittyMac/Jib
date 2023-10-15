@@ -8,6 +8,33 @@ import Foundation
 import Hitch
 import Chronometer
 
+extension Hitch {
+    @usableFromInline
+    func jsString<T>(_ callback: (JSStringRef) -> (T?)) -> T? {
+        return self.using { raw, count in
+            guard let raw = raw else { return nil }
+            guard let jsstring = JSStringCreateWithUTF8CString(raw) else { return nil }
+            return callback(jsstring)
+        }
+    }
+}
+
+extension HalfHitch {
+    @usableFromInline
+    func jsString<T>(_ callback: (JSStringRef) -> (T?)) -> T? {
+        return self.using { raw, count in
+            guard let raw = raw else { return nil }
+            // Note: there is not a garauntee that halfhitch ends with a null terminator,
+            // so we check it first. If it does not, we need to make a copy.
+            if raw[count] == 0 {
+                guard let jsstring = JSStringCreateWithUTF8CString(raw) else { return nil }
+                return callback(jsstring)
+            }
+            return hitch().jsString(callback)
+        }
+    }
+}
+
 public class Jib {
     
     public let group: JSContextGroupRef
@@ -141,8 +168,7 @@ public class Jib {
         lock.lock(); defer { lock.unlock() }
         
         // if that fails, attempt to resolve by evaluating it as a script
-        return script.using { raw, count in
-            let jsScript = JSStringCreateWithUTF8CString(raw)
+        return script.jsString { jsScript in
             defer { JSStringRelease(jsScript) }
 
             var jsException: JSObjectRef? = nil
@@ -297,8 +323,7 @@ public class Jib {
         // always return undefined unless it is embedded in parens first "({})". So as a
         // last attempt try evaluating it embedded in parens
         let modifiedHitch = "({0})" << [hitch]
-        if let returnValue: JSValueRef? = modifiedHitch.using({ raw, count in
-            let jsScript = JSStringCreateWithUTF8CString(raw)
+        if let returnValue: JSValueRef? = modifiedHitch.jsString({ jsScript in
             defer { JSStringRelease(jsScript) }
 
             var jsException: JSObjectRef? = nil
@@ -312,10 +337,9 @@ public class Jib {
         }
         
         // if that fails, attempt to resolve using the unmodified string
-        if let returnValue: JSValueRef? = hitch.using({ raw, count in
+        if let returnValue: JSValueRef? = hitch.jsString({ jsScript in
             // JavascriptCore does not appear to evaluate object literals "{}" correctly, it will
             // always return undefined unless it is embedded in parens first "({})"
-            let jsScript = JSStringCreateWithUTF8CString(raw)
             defer { JSStringRelease(jsScript) }
 
             var jsException: JSObjectRef? = nil
