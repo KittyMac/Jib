@@ -55,8 +55,9 @@ func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JS
 
 @inlinable
 public func JSValueToJson(_ context: OpaquePointer, _ value: JSValue) -> Hitch? {
-    guard JS_IsObject(value) != 0 else { return nil }
     let json = JS_JSONStringify(context, value, JS_NewUndefined(context), JS_NewUndefined(context))
+    defer { JS_FreeValue(context, json) }
+    
     var hitch: Hitch? = nil
     if let utf8 = JS_ToCString(context, json) {
         hitch = Hitch(utf8: utf8)
