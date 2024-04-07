@@ -5,32 +5,12 @@ import QuickJS
 
 final class JibTests: XCTestCase {
     
-    func testQuickJS() {
-        
-        let runtime = JS_NewRuntime()
-        let context = JS_NewContext(runtime)
-        
-        let script: HalfHitch = "2 + 40";
-        let result = JS_Eval(context,
-                             script.raw(),
-                             script.count,
-                             "filename",
-                             0)
-        
-        XCTAssertEqual(result.u.int32, 42)
-        
-        JS_FreeContext(context)
-        JS_FreeRuntime(runtime)
-    }
-    
-    func testGlobal0() {
+    func testEval0() {
         let jib = Jib()
         
-        jib.eval(#"2 + 40"#)
-        
-        //jib.eval(#"global.x = 5"#)
-        //let result1 = jib[int: "x"]!
-        //XCTAssertEqual(result1, 5)
+        jib.eval(#"x = 2 + 40"#)
+        let result1 = jib[int: "x"]!
+        XCTAssertEqual(result1, 42)
     }
     
     func testException() {
@@ -42,7 +22,6 @@ final class JibTests: XCTestCase {
         }
     }
     
-    /*
     func testNullTerminatedHalfHitch() {
         let scriptWhole: Hitch = "1234567890global.x = 5123456789"
         let scriptPart: HalfHitch = HalfHitch(source: scriptWhole, from: 10, to: 22)
@@ -52,18 +31,7 @@ final class JibTests: XCTestCase {
         let result1 = jib1[int: "x"]!
         XCTAssertEqual(result1, 5)
     }
-    
-    func testClone() {
-        let jib1 = Jib()
-        jib1.eval(#"global.x = 5"#)
-        let result1 = jib1[int: "x"]!
-        XCTAssertEqual(result1, 5)
         
-        let jib2 = Jib(clone: jib1)
-        let result2 = jib2[int: "x"]!
-        XCTAssertEqual(result2, 5)
-    }
-    
     func testGlobal0() {
         let jib = Jib()
         jib.eval(#"global.x = 5"#)
@@ -78,6 +46,7 @@ final class JibTests: XCTestCase {
         XCTAssertEqual(result1, 5)
     }
     
+    /*
     func testJson() {
         let jib = Jib()
                 

@@ -1,3 +1,5 @@
+import QuickJS
+
 /*
 
 #if canImport(JavaScriptCore)
@@ -91,15 +93,17 @@ public func JSValueToDouble(_ context: JSGlobalContextRef, _ value: JSValueRef?)
     guard JSValueIsNumber(context, value) == true else { return nil }
     return JSValueToNumber(context, value, nil)
 }
+*/
 
 @inlinable
-public func JSValueToInt(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Int? {
-    guard let value = value else { return nil }
-    guard JSValueIsUndefined(context, value) == false else { return nil }
-    guard JSValueIsNumber(context, value) == true else { return nil }
-    return Int(JSValueToNumber(context, value, nil))
+public func JSValueToInt(_ context: OpaquePointer, _ value: JSValue) -> Int? {
+    guard JS_IsNumber(value) != 0 else { return nil }
+    var result: Int64 = 0
+    JS_ToInt64(context, &result, value)
+    return Int(result)
 }
 
+/*
 @inlinable
 public func JSValueToBool(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Bool? {
     guard let value = value else { return nil }
