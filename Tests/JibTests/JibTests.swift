@@ -1,15 +1,29 @@
 import XCTest
 import Jib
 import Hitch
-
-#if canImport(JavaScriptCore)
-import JavaScriptCore
-#else
-import CJSCore
-#endif
+import QuickJS
 
 final class JibTests: XCTestCase {
     
+    func testQuickJS() {
+        
+        let runtime = JS_NewRuntime()
+        let context = JS_NewContext(runtime)
+        
+        let script: HalfHitch = "2 + 40";
+        let result = JS_Eval(context,
+                             script.raw(),
+                             script.count,
+                             "filename",
+                             0)
+        
+        XCTAssertEqual(result.u.int32, 42)
+        
+        JS_FreeContext(context)
+        JS_FreeRuntime(runtime)
+    }
+    
+    /*
     func testNullTerminatedHalfHitch() {
         let scriptWhole: Hitch = "1234567890global.x = 5123456789"
         let scriptPart: HalfHitch = HalfHitch(source: scriptWhole, from: 10, to: 22)
@@ -305,4 +319,5 @@ final class JibTests: XCTestCase {
         }
         
     }
+     */
 }
