@@ -1,7 +1,11 @@
 #ifndef _WIN32_COMPAT_H_
 #define _WIN32_COMPAT_H_
 
-#if defined(_WIN32)
+#if !defined(_WIN32)
+
+#include <sys/time.h>
+
+#else
 
 #include <Windows.h>
 #include <stdint.h>

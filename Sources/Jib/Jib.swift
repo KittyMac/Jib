@@ -1,3 +1,5 @@
+/*
+
 #if canImport(JavaScriptCore)
 import JavaScriptCore
 #else
@@ -385,3 +387,5 @@ public class Jib {
         return nil
     }
 }
+
+*/

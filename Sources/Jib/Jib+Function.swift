@@ -1,3 +1,5 @@
+/*
+
 #if canImport(JavaScriptCore)
 import JavaScriptCore
 #else
@@ -151,3 +153,4 @@ extension JibFunction: JibUnknown {
     }
 }
 
+*/

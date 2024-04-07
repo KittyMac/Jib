@@ -1,3 +1,5 @@
+/*
+
 #if canImport(JavaScriptCore)
 import JavaScriptCore
 #else
@@ -106,6 +108,4 @@ public func JSValueToBool(_ context: JSGlobalContextRef, _ value: JSValueRef?) -
     return JSValueToBoolean(context, value)
 }
 
-
-
-
+*/
