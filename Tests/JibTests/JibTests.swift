@@ -12,16 +12,7 @@ final class JibTests: XCTestCase {
         let result1 = jib[int: "x"]!
         XCTAssertEqual(result1, 42)
     }
-    
-    func testException() {
-        let jib = Jib()
         
-        guard let _ = jib.eval(" x.hello() ") else {
-            XCTAssertEqual(jib.exception, "ReferenceError: 'x' is not defined")
-            return
-        }
-    }
-    
     func testNullTerminatedHalfHitch() {
         let scriptWhole: Hitch = "1234567890global.x = 5123456789"
         let scriptPart: HalfHitch = HalfHitch(source: scriptWhole, from: 10, to: 22)
@@ -46,7 +37,6 @@ final class JibTests: XCTestCase {
         XCTAssertEqual(result1, 5)
     }
     
-    /*
     func testJson() {
         let jib = Jib()
                 
@@ -125,23 +115,24 @@ final class JibTests: XCTestCase {
         XCTAssertTrue(result7b < Date.distantFuture)
         XCTAssertTrue(result7b > Date.distantPast)
     }
-    
+    /*
     func testPrint() {
         let jib = Jib()
         
         _ = jib.eval("print('hello world')")!
         _ = jib.eval("console.log('hello world')")!
     }
-    
+    */
     func testException() {
         let jib = Jib()
         
         guard let _ = jib.eval(" x.hello() ") else {
-            XCTAssertEqual(jib.exception, "ReferenceError: Can't find variable: x")
+            XCTAssertEqual(jib.exception, "ReferenceError: 'x' is not defined")
             return
         }
+        XCTFail("exception was not thrown")
     }
-    
+    /*
     func testPassJibFunctionToFunction() {
         let jib = Jib()
         
@@ -279,7 +270,7 @@ final class JibTests: XCTestCase {
         }
         queue.waitUntilAllOperationsAreFinished()
     }
-    
+    */
     func testConvenience() {
         let jib = Jib()
         
@@ -307,5 +298,4 @@ final class JibTests: XCTestCase {
         }
         
     }
-     */
 }

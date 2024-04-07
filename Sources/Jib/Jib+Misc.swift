@@ -1,4 +1,6 @@
 import QuickJS
+import Hitch
+import Foundation
 
 /*
 
@@ -7,8 +9,6 @@ import JavaScriptCore
 #else
 import CJSCore
 #endif
-
-import Foundation
 import Hitch
 
 public typealias JibValue = JSValueRef
@@ -51,33 +51,38 @@ func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JS
         return result
     }
 }
+*/
 
 @inlinable
-public func JSValueToJson(_ context: JSGlobalContextRef, _ value: JSObjectRef?) -> Hitch? {
-    guard let value = value else { return nil }
-    guard let jsString = JSValueCreateJSONString(context, value, 0, nil) else { return nil }
-    let result = JSStringToHitch(context, jsString)
-    JSStringRelease(jsString)
-    return result
+public func JSValueToJson(_ context: OpaquePointer, _ value: JSValue) -> Hitch? {
+    guard JS_IsObject(value) != 0 else { return nil }
+    let json = JS_JSONStringify(context, value, JS_NewUndefined(context), JS_NewUndefined(context))
+    var hitch: Hitch? = nil
+    if let utf8 = JS_ToCString(context, json) {
+        hitch = Hitch(utf8: utf8)
+        JS_FreeCString(context, utf8)
+    }
+    return hitch
 }
 
 @inlinable
-func JSValueToHitch(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Hitch? {
-    guard let value = value else { return nil }
-    let jsString = JSValueToStringCopy(context, value, nil)
-    let result = JSStringToHitch(context, jsString)
-    JSStringRelease(jsString)
-    return result
+func JSValueToHitch(_ context: OpaquePointer, _ value: JSValue) -> Hitch? {
+    guard JS_IsString(value) != 0 else { return nil }
+    var hitch: Hitch? = nil
+    if let utf8 = JS_ToCString(context, value) {
+        hitch = Hitch(utf8: utf8)
+        JS_FreeCString(context, utf8)
+    }
+    return hitch
 }
 
 @inlinable
-public func JSValueToDecodable<T: Decodable>(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> T? {
-    guard let value = value else { return nil }
-    guard JSValueIsUndefined(context, value) == false else { return nil }
+public func JSValueToDecodable<T: Decodable>(_ context: OpaquePointer, _ value: JSValue) -> T? {
+    guard JS_IsUndefined(value) == 0 else { return nil }
     guard let json = JSValueToJson(context, value) else { return nil }
     return try? JSONDecoder().decode(T.self, from: json.dataNoCopy())
 }
-
+/*
 @inlinable
 public func JSValueToFunction(_ jib: Jib, _ value: JSValueRef?) -> JibFunction? {
     guard let value = value else { return nil }
@@ -85,15 +90,14 @@ public func JSValueToFunction(_ jib: Jib, _ value: JSValueRef?) -> JibFunction? 
     guard JSObjectIsFunction(jib.context, value) == true else { return nil }
     return JibFunction(jib: jib, object: value)
 }
-
-@inlinable
-public func JSValueToDouble(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Double? {
-    guard let value = value else { return nil }
-    guard JSValueIsUndefined(context, value) == false else { return nil }
-    guard JSValueIsNumber(context, value) == true else { return nil }
-    return JSValueToNumber(context, value, nil)
-}
 */
+@inlinable
+public func JSValueToDouble(_ context: OpaquePointer, _ value: JSValue) -> Double? {
+    guard JS_IsNumber(value) != 0 else { return nil }
+    var result: Double = 0
+    JS_ToFloat64(context, &result, value)
+    return result
+}
 
 @inlinable
 public func JSValueToInt(_ context: OpaquePointer, _ value: JSValue) -> Int? {
@@ -103,13 +107,9 @@ public func JSValueToInt(_ context: OpaquePointer, _ value: JSValue) -> Int? {
     return Int(result)
 }
 
-/*
-@inlinable
-public func JSValueToBool(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Bool? {
-    guard let value = value else { return nil }
-    guard JSValueIsUndefined(context, value) == false else { return nil }
-    guard JSValueIsBoolean(context, value) == true else { return nil }
-    return JSValueToBoolean(context, value)
-}
 
-*/
+@inlinable
+public func JSValueToBool(_ context: OpaquePointer, _ value: JSValue) -> Bool? {
+    guard JS_IsBool(value) != 0 else { return nil }
+    return JS_ToBool(context, value) != 0
+}

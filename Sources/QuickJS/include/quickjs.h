@@ -507,6 +507,15 @@ int JS_NewClass(JSRuntime *rt, JSClassID class_id, const JSClassDef *class_def);
 int JS_IsRegisteredClass(JSRuntime *rt, JSClassID class_id);
 
 /* value handling */
+static js_force_inline JSValue JS_NewUndefined(JSContext *ctx)
+{
+    return JS_MKVAL(JS_TAG_UNDEFINED, 0);
+}
+
+static js_force_inline JSValue JS_NewNull(JSContext *ctx)
+{
+    return JS_MKVAL(JS_TAG_NULL, 0);
+}
 
 static js_force_inline JSValue JS_NewBool(JSContext *ctx, JS_BOOL val)
 {
