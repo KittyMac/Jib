@@ -1,15 +1,117 @@
-/*
-
-#if canImport(JavaScriptCore)
-import JavaScriptCore
-#else
-import CJSCore
-#endif
-
 import Foundation
 import Hitch
 import Chronometer
 
+import QuickJS
+
+public class Jib {
+    private let runtime: OpaquePointer
+    private let context: OpaquePointer
+    
+    public var exception: Hitch?
+    
+    @usableFromInline
+    let lock = NSLock()
+
+    
+    deinit {
+        lock.lock(); defer { lock.unlock() }
+        JS_FreeContext(context)
+        JS_FreeRuntime(runtime)
+
+    }
+    
+    public init() {
+        runtime = JS_NewRuntime()
+        context = JS_NewContext(runtime)
+        
+        
+        let global = JS_GetGlobalObject(context);
+        //set(global: "global", value: global)
+        defer { JS_FreeValue(context, global) }
+
+        /*
+        undefined = JSValueMakeUndefined(context)
+        self.true = JSValueMakeBoolean(context, true)
+        self.false = JSValueMakeBoolean(context, false)
+        
+        if let clone = clone,
+           let cloneGlobal = JSContextGetGlobalObject(clone.context) {
+            let names = JSObjectCopyPropertyNames(clone.context, cloneGlobal)
+            for idx in 0..<JSPropertyNameArrayGetCount(names) {
+                let name = JSPropertyNameArrayGetNameAtIndex(names, idx)
+                let value = JSObjectGetProperty(clone.context, cloneGlobal, name, nil)
+                JSObjectSetProperty(context, global, name, value, UInt32(kJSPropertyAttributeDontDelete), nil)
+            }
+            JSPropertyNameArrayRelease(names)
+        }
+        
+        set(global: "global", value: global)
+        
+        printFn = new(function: "print", body: { arguments in
+            for argument in arguments {
+                print(argument)
+            }
+            return nil
+        })
+        
+        if let printFn = printFn {
+            set(global: "print", value: printFn)
+            _ = eval("console = {}; console.log = print;")
+        } else {
+            print("warning: jibPrint failed to be created, console.log will not work")
+        }
+         */
+        
+    }
+    
+    @discardableResult
+    func record(exception: JSValue) -> Bool? {
+        guard JS_IsException(exception) != 0 else { return nil }
+        
+        let exceptionValue = JS_GetException(context)
+        defer { JS_FreeValue(context, exceptionValue) }
+        
+        var exceptionHitch: Hitch = "Unknown Exception"
+        if let utf8 = JS_ToCString(context, exceptionValue) {
+            exceptionHitch = Hitch(utf8: utf8)
+            JS_FreeCString(context, utf8)
+        }
+        
+        self.exception = exceptionHitch
+        return true
+    }
+    
+    // MARK: - JS Evaluation
+    @discardableResult
+    public func eval(_ script: HalfHitch) -> Bool? {
+        lock.lock(); defer { lock.unlock() }
+        
+        guard let raw = script.raw() else { return nil }
+        
+        let result = JS_Eval(context,
+                             raw,
+                             script.count,
+                             "filename",
+                             0)
+        defer { JS_FreeValue(context, result) }
+
+        guard let _ = record(exception: result) else { return nil }
+        
+        return true
+    }
+    @discardableResult
+    @inlinable public func eval(_ script: Hitch) -> Bool? { return eval(script.halfhitch()) }
+    @discardableResult
+    @inlinable public func eval(_ script: String) -> Bool? { return eval(HalfHitch(string: script)) }
+    @discardableResult
+    @inlinable public func eval(_ script: StaticString) -> Bool? { return eval(HalfHitch(stringLiteral: script)) }
+    @discardableResult
+    @inlinable public func eval(_ script: Data) -> Bool? { return eval(HalfHitch(data: script)) }
+    
+}
+
+/*
 extension Hitch {
     @usableFromInline
     func jsString<T>(_ callback: (JSStringRef) -> (T?)) -> T? {
@@ -387,5 +489,6 @@ public class Jib {
         return nil
     }
 }
+
 
 */

@@ -23,6 +23,25 @@ final class JibTests: XCTestCase {
         JS_FreeRuntime(runtime)
     }
     
+    func testGlobal0() {
+        let jib = Jib()
+        
+        jib.eval(#"2 + 40"#)
+        
+        //jib.eval(#"global.x = 5"#)
+        //let result1 = jib[int: "x"]!
+        //XCTAssertEqual(result1, 5)
+    }
+    
+    func testException() {
+        let jib = Jib()
+        
+        guard let _ = jib.eval(" x.hello() ") else {
+            XCTAssertEqual(jib.exception, "ReferenceError: 'x' is not defined")
+            return
+        }
+    }
+    
     /*
     func testNullTerminatedHalfHitch() {
         let scriptWhole: Hitch = "1234567890global.x = 5123456789"
