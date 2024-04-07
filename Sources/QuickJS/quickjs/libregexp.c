@@ -40,6 +40,8 @@
     model.
 */
 
+#include "../win32_compat.h"
+
 #if defined(TEST)
 #define DUMP_REOP
 #endif

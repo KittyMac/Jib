@@ -75,28 +75,7 @@
 #define CONFIG_STACK_CHECK
 #endif
 
-
-#if !defined(_WIN32)
-#include <sys/time.h>
-#else
-// Convert FILETIME to UNIX time (microseconds)
-long long FileTimeToUnixTime(const FILETIME* ft) {
-    ULARGE_INTEGER ull;
-    ull.LowPart = ft->dwLowDateTime;
-    ull.HighPart = ft->dwHighDateTime;
-    return (long long)(ull.QuadPart - 116444736000000000ULL) / 10;
-}
-
-// Get current time with microsecond precision
-int gettimeofday(struct timeval* tp, void* tzp) {
-    FILETIME ft;
-    GetSystemTimeAsFileTime(&ft);
-    tp->tv_sec = (long)(FileTimeToUnixTime(&ft) / 1000000);
-    tp->tv_usec = (long)(FileTimeToUnixTime(&ft) % 1000000);
-    return 0;
-}
-#endif
-
+#include "../win32_compat.h"
 
 /* dump object free */
 //#define DUMP_FREE
