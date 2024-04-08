@@ -25,7 +25,6 @@ public func JSValueToJson(_ context: OpaquePointer, _ value: JSValue?) -> Hitch?
 func JSValueToHitch(_ context: OpaquePointer, _ value: JSValue?) -> Hitch? {
     guard let value = value else { return nil }
     guard JS_IsUndefined(value) == 0 else { return nil }
-    guard JS_IsString(value) != 0 else { return nil }
     var hitch: Hitch? = nil
     if let utf8 = JS_ToCString(context, value) {
         hitch = Hitch(utf8: utf8)

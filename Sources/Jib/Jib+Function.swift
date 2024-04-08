@@ -1,7 +1,7 @@
 import QuickJS
 import Hitch
 
-public typealias JibFunctionBody = ([Hitch]) -> JibValue?
+public typealias JibFunctionBody = ([Hitch]) -> JibUnknown?
 
 @usableFromInline
 typealias AnyPtr = UnsafeMutableRawPointer?
@@ -22,7 +22,7 @@ class JibBody {
     }
 
     @inlinable
-    func run(parameters: [Hitch]) -> JibValue? {
+    func run(parameters: [Hitch]) -> JibUnknown? {
         return block?(parameters)
     }
 }
@@ -86,12 +86,17 @@ public class JibFunction {
                     )
                 }
                 
-                return jibBody.run(parameters: parameters) ?? JS_NewUndefined(ctx)
+                let result = jibBody.run(parameters: parameters)
+                let resultValue = result?.createJibValue(ctx) ?? JS_NewUndefined(ctx)
+                
+                JS_FreeValue(ctx, resultValue)
+                
+                return resultValue
             }
 
             return JS_NewUndefined(ctx)
         }, name.raw(), Int32(name.count), JS_CFUNC_generic_magic, UInt64(UInt(bitPattern: bodyPtr)))
-        
+                
         functionValueRef = JS_DupValue(context, functionValue)
     }
 }

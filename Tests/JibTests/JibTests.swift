@@ -133,10 +133,10 @@ final class JibTests: XCTestCase {
         XCTFail("exception was not thrown")
     }
     
-    func testPassJibFunctionToFunction() {
+    func testPassJibFunctionToFunctionFAIL() {
         let jib = Jib()
         
-        let printFunction = jib.new(function: "print", body: { arguments in
+        let printFunction = jib.new(function: "print2", body: { arguments in
             for argument in arguments {
                 print(argument)
             }
@@ -200,8 +200,8 @@ final class JibTests: XCTestCase {
         
         XCTAssertEqual(jib.call(hitch: addFunc, [2, 3]), "5")
     }
-    /*
-    func testCallArgs3() throws {
+    
+    func testCallArgs3FAIL() throws {
         let jib = Jib()
         
         let swiftUppercase = jib.new(function: "swiftUppercase") { args in
@@ -218,7 +218,7 @@ final class JibTests: XCTestCase {
         XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
     }
     
-    func testThreadSafety() throws {
+    func testThreadSafetyFAIL() throws {
         let jib = Jib()
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 20
@@ -244,7 +244,7 @@ final class JibTests: XCTestCase {
         }
         
         queue.waitUntilAllOperationsAreFinished()
-    }*/
+    }
     
     func testParallelJib() throws {
         let queue = OperationQueue()
@@ -255,7 +255,7 @@ final class JibTests: XCTestCase {
                 let jib = Jib()
                 
                 let sleepFunction = jib.new(function: "sleep") { args in
-                    Thread.sleep(forTimeInterval: 3.0)
+                    Thread.sleep(forTimeInterval: args[0].toDouble() ?? 3.0)
                     return nil
                 }!
                 

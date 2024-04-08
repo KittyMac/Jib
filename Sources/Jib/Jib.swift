@@ -155,12 +155,13 @@ public class Jib {
                              undefined,
                              Int32(convertedArgs.count),
                              &convertedArgs)
+        
         guard let _ = recordIf(exception: result) else { return nil }
         return result
     }
     
     public func call<T: Decodable>(decoded function: JibFunction, _ args: [JibUnknown?]) -> T? { return JSValueToDecodable(context, call(jsvalue: function, args)) }
-    //public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? { return JSValueToFunction(self, call(jsvalue: function, args)) }
+    public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? { return JSValueToFunction(context, call(jsvalue: function, args)) }
     public func call(hitch function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToHitch(context, call(jsvalue: function, args)) }
     public func call(halfhitch function: JibFunction, _ args: [JibUnknown?]) -> HalfHitch? { return JSValueToHitch(context, call(jsvalue: function, args))?.halfhitch() }
     public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: function, args))?.toString() }
@@ -363,7 +364,7 @@ public class Jib {
     
     @discardableResult
     public func set(global name: HalfHitch, value: JibFunction) -> Bool? {
-        return set(global: name, value: value.functionValueRef ?? undefined)
+        return set(global: name, value: value.functionValueRef)
     }
     
     @discardableResult

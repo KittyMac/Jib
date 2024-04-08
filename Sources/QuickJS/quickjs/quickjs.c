@@ -1279,7 +1279,7 @@ static JSValue JS_InstantiateFunctionListItem2(JSContext *ctx, JSObject *p,
                                                JSAtom atom, void *opaque);
 void JS_SetUncatchableError(JSContext *ctx, JSValueConst val, BOOL flag);
 static JSValue js_object_groupBy(JSContext *ctx, JSValueConst this_val,
-                                 int argc, JSValueConst *argv, int is_map);
+                                 int argc, JSValueConst *argv, uint64_t is_map);
 
 static const JSClassExoticMethods js_arguments_exotic_methods;
 static const JSClassExoticMethods js_string_exotic_methods;
@@ -27481,8 +27481,8 @@ static char *js_default_module_normalize_name(JSContext *ctx,
 {
     char *filename, *p;
     const char *r;
-    int cap;
-    int len;
+    long cap;
+    long len;
 
     if (name[0] != '.') {
         /* if no initial dot, the module name is not modified */
@@ -37639,14 +37639,14 @@ static JSValue js_object_getOwnPropertySymbols(JSContext *ctx, JSValueConst this
 }
 
 static JSValue js_object_keys(JSContext *ctx, JSValueConst this_val,
-                              int argc, JSValueConst *argv, int kind)
+                              int argc, JSValueConst *argv, uint64_t kind)
 {
     return JS_GetOwnPropertyNames2(ctx, argv[0],
                                    JS_GPN_ENUM_ONLY | JS_GPN_STRING_MASK, kind);
 }
 
 static JSValue js_object_isExtensible(JSContext *ctx, JSValueConst this_val,
-                                      int argc, JSValueConst *argv, int reflect)
+                                      int argc, JSValueConst *argv, uint64_t reflect)
 {
     JSValueConst obj;
     int ret;
@@ -37666,7 +37666,7 @@ static JSValue js_object_isExtensible(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_object_preventExtensions(JSContext *ctx, JSValueConst this_val,
-                                           int argc, JSValueConst *argv, int reflect)
+                                           int argc, JSValueConst *argv, uint64_t reflect)
 {
     JSValueConst obj;
     int ret;
@@ -37838,7 +37838,7 @@ exception:
 }
 
 static JSValue js_object_seal(JSContext *ctx, JSValueConst this_val,
-                              int argc, JSValueConst *argv, int freeze_flag)
+                              int argc, JSValueConst *argv, uint64_t freeze_flag)
 {
     JSValueConst obj = argv[0];
     JSObject *p;
@@ -37889,7 +37889,7 @@ static JSValue js_object_seal(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_object_isSealed(JSContext *ctx, JSValueConst this_val,
-                                  int argc, JSValueConst *argv, int is_frozen)
+                                  int argc, JSValueConst *argv, uint64_t is_frozen)
 {
     JSValueConst obj = argv[0];
     JSObject *p;
@@ -38237,7 +38237,7 @@ exception:
 }
 
 static JSValue js_object___lookupGetter__(JSContext *ctx, JSValueConst this_val,
-                                          int argc, JSValueConst *argv, int setter)
+                                          int argc, JSValueConst *argv, uint64_t setter)
 {
     JSValue obj, res = JS_EXCEPTION;
     JSAtom prop = JS_ATOM_NULL;
@@ -39349,7 +39349,7 @@ static JSValue js_typed_array___speciesCreate(JSContext *ctx,
                                               int argc, JSValueConst *argv);
 
 static JSValue js_array_every(JSContext *ctx, JSValueConst this_val,
-                              int argc, JSValueConst *argv, int special)
+                              int argc, JSValueConst *argv, uint64_t special)
 {
     JSValue obj, val, index_val, res, ret;
     JSValueConst args[3];
@@ -39504,7 +39504,7 @@ exception:
 #define special_reduceRight  1
 
 static JSValue js_array_reduce(JSContext *ctx, JSValueConst this_val,
-                               int argc, JSValueConst *argv, int special)
+                               int argc, JSValueConst *argv, uint64_t special)
 {
     JSValue obj, val, index_val, acc, acc1;
     JSValueConst args[4];
@@ -39776,7 +39776,7 @@ enum {
 };
 
 static JSValue js_array_find(JSContext *ctx, JSValueConst this_val,
-                             int argc, JSValueConst *argv, int mode)
+                             int argc, JSValueConst *argv, uint64_t mode)
 {
     JSValueConst func, this_arg;
     JSValueConst args[3];
@@ -39872,7 +39872,7 @@ static JSValue js_array_toString(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_array_join(JSContext *ctx, JSValueConst this_val,
-                             int argc, JSValueConst *argv, int toLocaleString)
+                             int argc, JSValueConst *argv, uint64_t toLocaleString)
 {
     JSValue obj, sep = JS_UNDEFINED, el;
     StringBuffer b_s, *b = &b_s;
@@ -39929,7 +39929,7 @@ exception:
 }
 
 static JSValue js_array_pop(JSContext *ctx, JSValueConst this_val,
-                            int argc, JSValueConst *argv, int shift)
+                            int argc, JSValueConst *argv, uint64_t shift)
 {
     JSValue obj, res = JS_UNDEFINED;
     int64_t len, newLen;
@@ -39982,7 +39982,7 @@ static JSValue js_array_pop(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_array_push(JSContext *ctx, JSValueConst this_val,
-                             int argc, JSValueConst *argv, int unshift)
+                             int argc, JSValueConst *argv, uint64_t unshift)
 {
     JSValue obj;
     int i;
@@ -40143,7 +40143,7 @@ exception:
 }
 
 static JSValue js_array_slice(JSContext *ctx, JSValueConst this_val,
-                              int argc, JSValueConst *argv, int splice)
+                              int argc, JSValueConst *argv, uint64_t splice)
 {
     JSValue obj, arr, val, len_val;
     int64_t len, start, k, final, n, count, del_count, new_len;
@@ -40433,7 +40433,7 @@ fail:
 }
 
 static JSValue js_array_flatten(JSContext *ctx, JSValueConst this_val,
-                                int argc, JSValueConst *argv, int map)
+                                int argc, JSValueConst *argv, uint64_t map)
 {
     JSValue obj, arr;
     JSValueConst mapperFunction, thisArg;
@@ -41560,7 +41560,7 @@ static JSValue js_string_charCodeAt(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_string_charAt(JSContext *ctx, JSValueConst this_val,
-                                int argc, JSValueConst *argv, int is_at)
+                                int argc, JSValueConst *argv, uint64_t is_at)
 {
     JSValue val, ret;
     JSString *p;
@@ -41765,7 +41765,7 @@ static JSValue js_string_toWellFormed(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_string_indexOf(JSContext *ctx, JSValueConst this_val,
-                                 int argc, JSValueConst *argv, int lastIndexOf)
+                                 int argc, JSValueConst *argv, uint64_t lastIndexOf)
 {
     JSValue str, v;
     int i, len, v_len, pos, start, stop, ret, inc;
@@ -41926,7 +41926,7 @@ static int check_regexp_g_flag(JSContext *ctx, JSValueConst regexp)
 }
 
 static JSValue js_string_match(JSContext *ctx, JSValueConst this_val,
-                               int argc, JSValueConst *argv, int atom)
+                               int argc, JSValueConst *argv, uint64_t atom)
 {
     // match(rx), search(rx), matchAll(rx)
     // atom is JS_ATOM_Symbol_match, JS_ATOM_Symbol_search, or JS_ATOM_Symbol_matchAll
@@ -42085,7 +42085,7 @@ exception:
 
 static JSValue js_string_replace(JSContext *ctx, JSValueConst this_val,
                                  int argc, JSValueConst *argv,
-                                 int is_replaceAll)
+                                 uint64_t is_replaceAll)
 {
     // replace(rx, rep)
     JSValueConst O = this_val, searchValue = argv[0], replaceValue = argv[1];
@@ -42377,7 +42377,7 @@ static JSValue js_string_slice(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_string_pad(JSContext *ctx, JSValueConst this_val,
-                             int argc, JSValueConst *argv, int padEnd)
+                             int argc, JSValueConst *argv, uint64_t padEnd)
 {
     JSValue str, v = JS_UNDEFINED;
     StringBuffer b_s, *b = &b_s;
@@ -42578,7 +42578,7 @@ static BOOL test_final_sigma(JSString *p, int sigma_pos)
 }
 
 static JSValue js_string_toLowerCase(JSContext *ctx, JSValueConst this_val,
-                                     int argc, JSValueConst *argv, int to_lower)
+                                     int argc, JSValueConst *argv, uint64_t to_lower)
 {
     JSValue val;
     StringBuffer b_s, *b = &b_s;
@@ -43765,7 +43765,7 @@ static JSValue js_regexp_get_source(JSContext *ctx, JSValueConst this_val)
     return string_buffer_end(b);
 }
 
-static JSValue js_regexp_get_flag(JSContext *ctx, JSValueConst this_val, int mask)
+static JSValue js_regexp_get_flag(JSContext *ctx, JSValueConst this_val, uint64_t mask)
 {
     JSRegExp *re;
     int flags;
@@ -47400,7 +47400,7 @@ static JSValue js_map_forEach(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_object_groupBy(JSContext *ctx, JSValueConst this_val,
-                                 int argc, JSValueConst *argv, int is_map)
+                                 int argc, JSValueConst *argv, uint64_t is_map)
 {
     JSValueConst cb, args[2];
     JSValue res, iter, next, groups, key, v, prop;
@@ -49170,7 +49170,7 @@ static int hex_decode(JSContext *ctx, JSString *p, int k) {
 }
 
 static JSValue js_global_decodeURI(JSContext *ctx, JSValueConst this_val,
-                                   int argc, JSValueConst *argv, int isComponent)
+                                   int argc, JSValueConst *argv, uint64_t isComponent)
 {
     JSValue str;
     StringBuffer b_s, *b = &b_s;
@@ -49282,7 +49282,7 @@ static int encodeURI_hex(StringBuffer *b, int c) {
 
 static JSValue js_global_encodeURI(JSContext *ctx, JSValueConst this_val,
                                    int argc, JSValueConst *argv,
-                                   int isComponent)
+                                   uint64_t isComponent)
 {
     JSValue str;
     StringBuffer b_s, *b = &b_s;
@@ -51136,7 +51136,7 @@ static JSValue js_bigint_op1(JSContext *ctx,
 
 static JSValue js_bigint_asUintN(JSContext *ctx,
                                   JSValueConst this_val,
-                                  int argc, JSValueConst *argv, int asIntN)
+                                  int argc, JSValueConst *argv, uint64_t asIntN)
 {
     uint64_t bits;
     bf_t a_s, *a = &a_s, *r, mask_s, *mask = &mask_s;
@@ -53096,7 +53096,7 @@ static JSValue JS_ThrowTypeErrorDetachedArrayBuffer(JSContext *ctx)
 
 static JSValue js_array_buffer_get_byteLength(JSContext *ctx,
                                               JSValueConst this_val,
-                                              int class_id)
+                                              uint64_t class_id)
 {
     JSArrayBuffer *abuf = JS_GetOpaque2(ctx, this_val, class_id);
     if (!abuf)
@@ -53168,7 +53168,7 @@ uint8_t *JS_GetArrayBuffer(JSContext *ctx, size_t *psize, JSValueConst obj)
 
 static JSValue js_array_buffer_slice(JSContext *ctx,
                                      JSValueConst this_val,
-                                     int argc, JSValueConst *argv, int class_id)
+                                     uint64_t argc, JSValueConst *argv, uint64_t class_id)
 {
     JSArrayBuffer *abuf, *new_abuf;
     int64_t len, start, end, new_len;
@@ -53315,7 +53315,7 @@ static JSValue js_typed_array_get_length(JSContext *ctx,
 }
 
 static JSValue js_typed_array_get_buffer(JSContext *ctx,
-                                         JSValueConst this_val, int is_dataview)
+                                         JSValueConst this_val, uint64_t is_dataview)
 {
     JSObject *p;
     JSTypedArray *ta;
@@ -53328,7 +53328,7 @@ static JSValue js_typed_array_get_buffer(JSContext *ctx,
 
 static JSValue js_typed_array_get_byteLength(JSContext *ctx,
                                              JSValueConst this_val,
-                                             int is_dataview)
+                                             uint64_t is_dataview)
 {
     JSObject *p;
     JSTypedArray *ta;
@@ -53348,7 +53348,7 @@ static JSValue js_typed_array_get_byteLength(JSContext *ctx,
 
 static JSValue js_typed_array_get_byteOffset(JSContext *ctx,
                                              JSValueConst this_val,
-                                             int is_dataview)
+                                             uint64_t is_dataview)
 {
     JSObject *p;
     JSTypedArray *ta;
@@ -53900,7 +53900,7 @@ static JSValue js_typed_array_fill(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_typed_array_find(JSContext *ctx, JSValueConst this_val,
-                                   int argc, JSValueConst *argv, int mode)
+                                   int argc, JSValueConst *argv, uint64_t mode)
 {
     JSValueConst func, this_arg;
     JSValueConst args[3];
@@ -53966,7 +53966,7 @@ exception:
 #define special_includes -1
 
 static JSValue js_typed_array_indexOf(JSContext *ctx, JSValueConst this_val,
-                                      int argc, JSValueConst *argv, int special)
+                                      int argc, JSValueConst *argv, uint64_t special)
 {
     JSObject *p;
     int len, tag, is_int, is_bigint, k, stop, inc, res = -1;
@@ -54204,7 +54204,7 @@ exception:
 }
 
 static JSValue js_typed_array_join(JSContext *ctx, JSValueConst this_val,
-                                   int argc, JSValueConst *argv, int toLocaleString)
+                                   int argc, JSValueConst *argv, uint64_t toLocaleString)
 {
     JSValue sep = JS_UNDEFINED, el;
     StringBuffer b_s, *b = &b_s;
@@ -55155,7 +55155,7 @@ static JSValue js_dataview_constructor(JSContext *ctx,
 
 static JSValue js_dataview_getValue(JSContext *ctx,
                                     JSValueConst this_obj,
-                                    int argc, JSValueConst *argv, int class_id)
+                                    int argc, JSValueConst *argv, uint64_t class_id)
 {
     JSTypedArray *ta;
     JSArrayBuffer *abuf;
@@ -55253,7 +55253,7 @@ static JSValue js_dataview_getValue(JSContext *ctx,
 
 static JSValue js_dataview_setValue(JSContext *ctx,
                                     JSValueConst this_obj,
-                                    int argc, JSValueConst *argv, int class_id)
+                                    int argc, JSValueConst *argv, uint64_t class_id)
 {
     JSTypedArray *ta;
     JSArrayBuffer *abuf;

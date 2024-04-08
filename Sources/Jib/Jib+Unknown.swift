@@ -19,20 +19,23 @@ extension JibFunction: JibUnknown {
         return functionValueRef
     }
 }
-/*
+
 extension HitchArray: JibUnknown {
     @inlinable
     public func createJibValue(_ context: OpaquePointer) -> JibValue {
         let args = map { $0.createJibValue(context) }
         let array = JS_NewArray(context)
-        return JSObjectMakeArray(context, args.count, args, nil)
+        
+        // TODO: how to add items to array?
+        
+        return array
     }
     
     @inlinable
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
-}*/
+}
 
 extension String: JibUnknown {
     @inlinable
