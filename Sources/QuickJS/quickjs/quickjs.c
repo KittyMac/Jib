@@ -96,7 +96,7 @@
 //#define DUMP_GC_FREE
 /* dump objects leaking when freeing the runtime */
 #if DEBUG
-#define DUMP_LEAKS  1
+// #define DUMP_LEAKS  1
 #endif
 /* dump memory usage before running the garbage collector */
 //#define DUMP_MEM
