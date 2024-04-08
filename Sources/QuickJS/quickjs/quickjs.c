@@ -1195,11 +1195,11 @@ static JSArrayBuffer *js_get_array_buffer(JSContext *ctx, JSValueConst obj);
 static JSValue js_typed_array_constructor(JSContext *ctx,
                                           JSValueConst this_val,
                                           int argc, JSValueConst *argv,
-                                          int classid);
+                                          uint64_t classid);
 static JSValue js_typed_array_constructor_ta(JSContext *ctx,
                                              JSValueConst new_target,
                                              JSValueConst src_obj,
-                                             int classid);
+                                             uint64_t classid);
 static BOOL typed_array_is_detached(JSContext *ctx, JSObject *p);
 static uint32_t typed_array_get_length(JSContext *ctx, JSObject *p);
 static JSValue JS_ThrowTypeErrorDetachedArrayBuffer(JSContext *ctx);
@@ -53174,7 +53174,7 @@ uint8_t *JS_GetArrayBuffer(JSContext *ctx, size_t *psize, JSValueConst obj)
 
 static JSValue js_array_buffer_slice(JSContext *ctx,
                                      JSValueConst this_val,
-                                     uint64_t argc, JSValueConst *argv, uint64_t class_id)
+                                     int argc, JSValueConst *argv, uint64_t class_id)
 {
     JSArrayBuffer *abuf, *new_abuf;
     int64_t len, start, end, new_len;
@@ -54900,7 +54900,7 @@ static JSValue js_array_from_iterator(JSContext *ctx, uint32_t *plen,
 static JSValue js_typed_array_constructor_obj(JSContext *ctx,
                                               JSValueConst new_target,
                                               JSValueConst obj,
-                                              int classid)
+                                              uint64_t classid)
 {
     JSValue iter, ret, arr = JS_UNDEFINED, val, buffer;
     uint32_t i;
@@ -54953,7 +54953,7 @@ static JSValue js_typed_array_constructor_obj(JSContext *ctx,
 static JSValue js_typed_array_constructor_ta(JSContext *ctx,
                                              JSValueConst new_target,
                                              JSValueConst src_obj,
-                                             int classid)
+                                             uint64_t classid)
 {
     JSObject *p, *src_buffer;
     JSTypedArray *ta;
@@ -55010,7 +55010,7 @@ static JSValue js_typed_array_constructor_ta(JSContext *ctx,
 static JSValue js_typed_array_constructor(JSContext *ctx,
                                           JSValueConst new_target,
                                           int argc, JSValueConst *argv,
-                                          int classid)
+                                          uint64_t classid)
 {
     JSValue buffer, obj;
     JSArrayBuffer *abuf;
