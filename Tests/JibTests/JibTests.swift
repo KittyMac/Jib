@@ -216,6 +216,8 @@ final class JibTests: XCTestCase {
         }
     
         XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
+        XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
+        XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
     }
     
     func testThreadSafetyFAIL() throws {

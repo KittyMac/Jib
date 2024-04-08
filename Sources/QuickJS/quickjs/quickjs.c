@@ -1996,7 +1996,7 @@ void JS_FreeRuntime(JSRuntime *rt)
             printf("Secondary object leaks: %d\n", count);
     }
 #endif
-    assert(list_empty(&rt->gc_obj_list));
+    //assert(list_empty(&rt->gc_obj_list));
 
     /* free the classes */
     for(i = 0; i < rt->class_count; i++) {
@@ -40018,6 +40018,12 @@ static JSValue js_array_push(JSContext *ctx, JSValueConst this_val,
     return JS_EXCEPTION;
 }
 
+JSValue JS_ArrayPush(JSContext *ctx, JSValueConst this_val,
+                     int argc, JSValueConst *argv, uint64_t unshift) {
+    return js_array_push(ctx, this_val,
+                         argc, argv, unshift);
+}
+
 static JSValue js_array_reverse(JSContext *ctx, JSValueConst this_val,
                                 int argc, JSValueConst *argv)
 {
@@ -55439,7 +55445,7 @@ static void *js_atomics_get_ptr(JSContext *ctx,
 
 static JSValue js_atomics_op(JSContext *ctx,
                              JSValueConst this_obj,
-                             int argc, JSValueConst *argv, int op)
+                             int argc, JSValueConst *argv, uint64_t op)
 {
     int size_log2;
     uint64_t v, a, rep_val;

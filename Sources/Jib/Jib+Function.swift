@@ -86,12 +86,12 @@ public class JibFunction {
                     )
                 }
                 
-                let result = jibBody.run(parameters: parameters)
-                let resultValue = result?.createJibValue(ctx) ?? JS_NewUndefined(ctx)
-                
-                JS_FreeValue(ctx, resultValue)
-                
-                return resultValue
+                if let result = jibBody.run(parameters: parameters) {
+                    let resultValue = result.createJibValue(ctx)
+                    //JS_FreeValue(ctx, resultValue)
+                    return resultValue
+                }
+                return JS_NewUndefined(ctx)
             }
 
             return JS_NewUndefined(ctx)

@@ -11,22 +11,27 @@ public protocol JibUnknown {
 extension JibFunction: JibUnknown {
     @inlinable
     public func createJibValue(_ context: OpaquePointer) -> JibValue {
-        return functionValueRef
+        return JS_DupValue(context, functionValueRef)
     }
     
     @inlinable
     public func createJibValue(_ jib: Jib) -> JibValue {
-        return functionValueRef
+        return JS_DupValue(jib.context, functionValueRef)
     }
 }
 
 extension HitchArray: JibUnknown {
     @inlinable
     public func createJibValue(_ context: OpaquePointer) -> JibValue {
-        let args = map { $0.createJibValue(context) }
+        var args = map { $0.createJibValue(context) }
         let array = JS_NewArray(context)
         
-        // TODO: how to add items to array?
+        JS_ArrayPush(context, array,
+                     Int32(args.count),
+                     &args,
+                     0)
+        
+        args.forEach { JS_FreeValue(context, $0) }
         
         return array
     }
