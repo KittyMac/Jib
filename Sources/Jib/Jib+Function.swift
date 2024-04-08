@@ -87,9 +87,7 @@ public class JibFunction {
                 }
                 
                 if let result = jibBody.run(parameters: parameters) {
-                    let resultValue = result.createJibValue(ctx)
-                    //JS_FreeValue(ctx, resultValue)
-                    return resultValue
+                    return result.createJibValue(ctx)
                 }
                 return JS_NewUndefined(ctx)
             }

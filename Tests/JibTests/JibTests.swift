@@ -133,7 +133,7 @@ final class JibTests: XCTestCase {
         XCTFail("exception was not thrown")
     }
     
-    func testPassJibFunctionToFunctionFAIL() {
+    func testPassJibFunctionToFunction() {
         let jib = Jib()
         
         let printFunction = jib.new(function: "print2", body: { arguments in
@@ -201,7 +201,7 @@ final class JibTests: XCTestCase {
         XCTAssertEqual(jib.call(hitch: addFunc, [2, 3]), "5")
     }
     
-    func testCallArgs3FAIL() throws {
+    func testCallArgs3() throws {
         let jib = Jib()
         
         let swiftUppercase = jib.new(function: "swiftUppercase") { args in
@@ -220,7 +220,7 @@ final class JibTests: XCTestCase {
         XCTAssertEqual(jib.call(hitch: callbackFunc, ["hello world", swiftUppercase]), "HELLO WORLD")
     }
     
-    func testThreadSafetyFAIL() throws {
+    func testThreadSafety() throws {
         let jib = Jib()
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 20

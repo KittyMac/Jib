@@ -162,47 +162,80 @@ public class Jib {
     
     public func call<T: Decodable>(decoded function: JibFunction, _ args: [JibUnknown?]) -> T? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToDecodable(context, call(jsvalue: function, args))
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: T? = JSValueToDecodable(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue
     }
     public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToFunction(context, call(jsvalue: function, args))
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: JibFunction? = JSValueToFunction(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue
     }
     public func call(hitch function: JibFunction, _ args: [JibUnknown?]) -> Hitch? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToHitch(context, call(jsvalue: function, args))
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Hitch? = JSValueToHitch(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue
     }
     public func call(halfhitch function: JibFunction, _ args: [JibUnknown?]) -> HalfHitch? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToHitch(context, call(jsvalue: function, args))?.halfhitch()
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Hitch? = JSValueToHitch(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue?.halfhitch()
     }
     public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToHitch(context, call(jsvalue: function, args))?.toString()
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Hitch? = JSValueToHitch(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue?.toString()
     }
     public func call(date function: JibFunction, _ args: [JibUnknown?]) -> Date? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToHitch(context, call(jsvalue: function, args))?.toString().date()
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Hitch? = JSValueToHitch(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue?.toString().date()
     }
     public func call(double function: JibFunction, _ args: [JibUnknown?]) -> Double? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToDouble(context, call(jsvalue: function, args))
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Double? = JSValueToDouble(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue
     }
     public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToInt(context, call(jsvalue: function, args))
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Int? = JSValueToInt(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue
     }
     public func call(bool function: JibFunction, _ args: [JibUnknown?]) -> Bool? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToBool(context, call(jsvalue: function, args))
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Bool? = JSValueToBool(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue
     }
     public func call(json function: JibFunction, _ args: [JibUnknown?]) -> Hitch? {
         lock.lock(); defer { lock.unlock() }
-        return JSValueToJson(context, call(jsvalue: function, args))
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        let retValue: Hitch? = JSValueToJson(context, jsValue)
+        JS_FreeValue(context, jsValue)
+        return retValue
     }
+    
     public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? {
         lock.lock(); defer { lock.unlock() }
-        return call(jsvalue: function, args)
+        guard let jsValue = call(jsvalue: function, args) else { return nil }
+        JS_FreeValue(context, jsValue)
+        return true
     }
     
     // MARK: - JS Evaluation
@@ -385,10 +418,13 @@ public class Jib {
     @discardableResult
     public func set(global name: HalfHitch, value: JSValue) -> Bool? {
         lock.lock(); defer { lock.unlock() }
-                
+        
+        let atom = JS_NewAtom(context, name.raw())
+        defer { JS_FreeAtom(context, atom) }
+        
         if JS_SetProperty(context,
                           global,
-                          JS_NewAtom(context, name.raw()),
+                          atom,
                           value) != 1 {
             return recordException()
         }
@@ -397,7 +433,6 @@ public class Jib {
     
     @discardableResult
     public func set(global name: HalfHitch, value: JibFunction) -> Bool? {
-        // TODO: how to safely lock this?
         return set(global: name, value: value.functionValueRef)
     }
     
