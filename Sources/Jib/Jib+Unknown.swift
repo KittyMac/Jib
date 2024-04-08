@@ -1,3 +1,16 @@
+import QuickJS
+import Hitch
+
+/*
+typealias HitchArray = [Hitch]
+
+public protocol JibUnknown {
+    func createJibValue(_ jib: Jib) -> JibValue
+    func createJibValue(_ context: OpaquePointer) -> JibValue
+}
+*/
+
+
 /*
 
 #if canImport(JavaScriptCore)

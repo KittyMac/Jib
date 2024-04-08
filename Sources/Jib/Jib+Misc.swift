@@ -2,6 +2,8 @@ import QuickJS
 import Hitch
 import Foundation
 
+let undefinedHitch: Hitch = "undefined"
+
 /*
 
 #if canImport(JavaScriptCore)
@@ -83,15 +85,13 @@ public func JSValueToDecodable<T: Decodable>(_ context: OpaquePointer, _ value: 
     guard let json = JSValueToJson(context, value) else { return nil }
     return try? JSONDecoder().decode(T.self, from: json.dataNoCopy())
 }
-/*
+
 @inlinable
-public func JSValueToFunction(_ jib: Jib, _ value: JSValueRef?) -> JibFunction? {
-    guard let value = value else { return nil }
-    guard JSValueIsUndefined(jib.context, value) == false else { return nil }
-    guard JSObjectIsFunction(jib.context, value) == true else { return nil }
-    return JibFunction(jib: jib, object: value)
+public func JSValueToFunction(_ context: OpaquePointer, _ value: JSValue) -> JibFunction? {
+    guard JS_IsFunction(context, value) != 0 else { return nil }
+    return JibFunction(context: context, object: value)
 }
-*/
+
 @inlinable
 public func JSValueToDouble(_ context: OpaquePointer, _ value: JSValue) -> Double? {
     guard JS_IsNumber(value) != 0 else { return nil }
