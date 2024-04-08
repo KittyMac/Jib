@@ -1,50 +1,30 @@
 import QuickJS
 import Hitch
 
-/*
 typealias HitchArray = [Hitch]
 
 public protocol JibUnknown {
     func createJibValue(_ jib: Jib) -> JibValue
     func createJibValue(_ context: OpaquePointer) -> JibValue
 }
-*/
 
-
-/*
-
-#if canImport(JavaScriptCore)
-import JavaScriptCore
-#else
-import CJSCore
-#endif
-
-import Foundation
-import Hitch
-
-typealias HitchArray = [Hitch]
-
-public protocol JibUnknown {
-    func createJibValue(_ jib: Jib) -> JibValue
-    func createJibValue(_ context: JSGlobalContextRef) -> JibValue
-}
-/*
 extension JibFunction: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        return self
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return functionValueRef
     }
     
     @inlinable
     public func createJibValue(_ jib: Jib) -> JibValue {
-        return self
+        return functionValueRef
     }
 }
-*/
+/*
 extension HitchArray: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        let args = map { HalfHitchToJSValue(context, $0.halfhitch()) }
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        let args = map { $0.createJibValue(context) }
+        let array = JS_NewArray(context)
         return JSObjectMakeArray(context, args.count, args, nil)
     }
     
@@ -52,22 +32,13 @@ extension HitchArray: JibUnknown {
     public func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
-}
+}*/
 
 extension String: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let jsString = HalfHitch(string: self).jsString({ jsString in
-            return jsString
-        }) else {
-            return JSValueMakeUndefined(context)
-        }
-        
-        guard let result = JSValueMakeString(context, jsString) else {
-            return JSValueMakeUndefined(context)
-        }
-        JSStringRelease(jsString)
-        return result
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        let hh = HalfHitch(string: self)
+        return JS_NewStringLen(context, hh.raw(), hh.count)
     }
     
     @inlinable
@@ -78,18 +49,9 @@ extension String: JibUnknown {
 
 extension StaticString: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let jsString = HalfHitch(stringLiteral: self).jsString({ jsString in
-            return jsString
-        }) else {
-            return JSValueMakeUndefined(context)
-        }
-        
-        guard let result = JSValueMakeString(context, jsString) else {
-            return JSValueMakeUndefined(context)
-        }
-        JSStringRelease(jsString)
-        return result
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        let hh = HalfHitch(stringLiteral: self)
+        return JS_NewStringLen(context, hh.raw(), hh.count)
     }
     
     @inlinable
@@ -100,18 +62,8 @@ extension StaticString: JibUnknown {
 
 extension Hitch: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let jsString = jsString({ jsString in
-            return jsString
-        }) else {
-            return JSValueMakeUndefined(context)
-        }
-        
-        guard let result = JSValueMakeString(context, jsString) else {
-            return JSValueMakeUndefined(context)
-        }
-        JSStringRelease(jsString)
-        return result
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return JS_NewStringLen(context, raw(), count)
     }
     
     @inlinable
@@ -122,18 +74,8 @@ extension Hitch: JibUnknown {
 
 extension HalfHitch: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        guard let jsString = jsString({ jsString in
-            return jsString
-        }) else {
-            return JSValueMakeUndefined(context)
-        }
-        
-        guard let result = JSValueMakeString(context, jsString) else {
-            return JSValueMakeUndefined(context)
-        }
-        JSStringRelease(jsString)
-        return result
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return JS_NewStringLen(context, raw(), count)
     }
     
     @inlinable
@@ -144,8 +86,8 @@ extension HalfHitch: JibUnknown {
 
 extension Int: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        return JSValueMakeNumber(context, Double(self))
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return JS_NewInt64(context, Int64(self))
     }
     
     @inlinable
@@ -156,8 +98,8 @@ extension Int: JibUnknown {
 
 extension UInt: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        return JSValueMakeNumber(context, Double(self))
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return JS_NewBigUint64(context, UInt64(self))
     }
     
     @inlinable
@@ -168,8 +110,8 @@ extension UInt: JibUnknown {
 
 extension Double: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        return JSValueMakeNumber(context, self)
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return JS_NewFloat64(context, Double(self))
     }
     
     @inlinable
@@ -180,8 +122,8 @@ extension Double: JibUnknown {
 
 extension Float: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        return JSValueMakeNumber(context, Double(self))
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return JS_NewFloat64(context, Double(self))
     }
     
     @inlinable
@@ -192,8 +134,8 @@ extension Float: JibUnknown {
 
 extension Bool: JibUnknown {
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
-        return JSValueMakeBoolean(context, self)
+    public func createJibValue(_ context: OpaquePointer) -> JibValue {
+        return JS_NewBool(context, self ? 1 : 0)
     }
     
     @inlinable
@@ -202,4 +144,3 @@ extension Bool: JibUnknown {
     }
 }
 
-*/

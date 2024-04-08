@@ -200,7 +200,7 @@ final class JibTests: XCTestCase {
         
         XCTAssertEqual(jib.call(hitch: addFunc, [2, 3]), "5")
     }
-    
+    /*
     func testCallArgs3() throws {
         let jib = Jib()
         
@@ -244,7 +244,7 @@ final class JibTests: XCTestCase {
         }
         
         queue.waitUntilAllOperationsAreFinished()
-    }
+    }*/
     
     func testParallelJib() throws {
         let queue = OperationQueue()

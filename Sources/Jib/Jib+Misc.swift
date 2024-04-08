@@ -2,61 +2,14 @@ import QuickJS
 import Hitch
 import Foundation
 
+public typealias JibValue = JSValue
+
 let undefinedHitch: Hitch = "undefined"
 
-/*
-
-#if canImport(JavaScriptCore)
-import JavaScriptCore
-#else
-import CJSCore
-#endif
-import Hitch
-
-public typealias JibValue = JSValueRef
-
-@usableFromInline
-let undefinedHitch: Hitch = "undefined"
-
-extension JibValue {
-    
-}
-
 @inlinable
-func JSStringToHitch(_ context: JSGlobalContextRef, _ jsString: JSStringRef?) -> Hitch {
-    guard let jsString = jsString else { return undefinedHitch }
-    let size = JSStringGetMaximumUTF8CStringSize(jsString)
-    let result = Hitch(garbage: size)
-    if let returnValue: Hitch = result.mutableUsing({ mutableRaw, count in
-        result.count = JSStringGetUTF8CString(jsString, mutableRaw, size) - 1
-        return result
-    }) {
-        return returnValue
-    }
-    return undefinedHitch
-}
-
-@inlinable
-func CreateJSString(halfhitch value: HalfHitch) -> JSStringRef? {
-    return value.jsString { jsString in
-        return jsString
-    }
-}
-
-@inlinable
-func HalfHitchToJSValue(_ context: JSGlobalContextRef, _ value: HalfHitch) -> JSStringRef? {
-    return value.jsString { jsString in
-        defer { JSStringRelease(jsString) }
-        guard let result = JSValueMakeString(context, jsString) else {
-            return nil
-        }
-        return result
-    }
-}
-*/
-
-@inlinable
-public func JSValueToJson(_ context: OpaquePointer, _ value: JSValue) -> Hitch? {
+public func JSValueToJson(_ context: OpaquePointer, _ value: JSValue?) -> Hitch? {
+    guard let value = value else { return nil }
+    guard JS_IsUndefined(value) == 0 else { return nil }
     let json = JS_JSONStringify(context, value, JS_NewUndefined(context), JS_NewUndefined(context))
     defer { JS_FreeValue(context, json) }
     
@@ -69,7 +22,9 @@ public func JSValueToJson(_ context: OpaquePointer, _ value: JSValue) -> Hitch? 
 }
 
 @inlinable
-func JSValueToHitch(_ context: OpaquePointer, _ value: JSValue) -> Hitch? {
+func JSValueToHitch(_ context: OpaquePointer, _ value: JSValue?) -> Hitch? {
+    guard let value = value else { return nil }
+    guard JS_IsUndefined(value) == 0 else { return nil }
     guard JS_IsString(value) != 0 else { return nil }
     var hitch: Hitch? = nil
     if let utf8 = JS_ToCString(context, value) {
@@ -80,20 +35,25 @@ func JSValueToHitch(_ context: OpaquePointer, _ value: JSValue) -> Hitch? {
 }
 
 @inlinable
-public func JSValueToDecodable<T: Decodable>(_ context: OpaquePointer, _ value: JSValue) -> T? {
+public func JSValueToDecodable<T: Decodable>(_ context: OpaquePointer, _ value: JSValue?) -> T? {
+    guard let value = value else { return nil }
     guard JS_IsUndefined(value) == 0 else { return nil }
     guard let json = JSValueToJson(context, value) else { return nil }
     return try? JSONDecoder().decode(T.self, from: json.dataNoCopy())
 }
 
 @inlinable
-public func JSValueToFunction(_ context: OpaquePointer, _ value: JSValue) -> JibFunction? {
+public func JSValueToFunction(_ context: OpaquePointer, _ value: JSValue?) -> JibFunction? {
+    guard let value = value else { return nil }
+    guard JS_IsUndefined(value) == 0 else { return nil }
     guard JS_IsFunction(context, value) != 0 else { return nil }
-    return JibFunction(context: context, object: value)
+    return JibFunction(context: context, value: value)
 }
 
 @inlinable
-public func JSValueToDouble(_ context: OpaquePointer, _ value: JSValue) -> Double? {
+public func JSValueToDouble(_ context: OpaquePointer, _ value: JSValue?) -> Double? {
+    guard let value = value else { return nil }
+    guard JS_IsUndefined(value) == 0 else { return nil }
     guard JS_IsNumber(value) != 0 else { return nil }
     var result: Double = 0
     JS_ToFloat64(context, &result, value)
@@ -101,7 +61,9 @@ public func JSValueToDouble(_ context: OpaquePointer, _ value: JSValue) -> Doubl
 }
 
 @inlinable
-public func JSValueToInt(_ context: OpaquePointer, _ value: JSValue) -> Int? {
+public func JSValueToInt(_ context: OpaquePointer, _ value: JSValue?) -> Int? {
+    guard let value = value else { return nil }
+    guard JS_IsUndefined(value) == 0 else { return nil }
     guard JS_IsNumber(value) != 0 else { return nil }
     var result: Int64 = 0
     JS_ToInt64(context, &result, value)
@@ -110,7 +72,9 @@ public func JSValueToInt(_ context: OpaquePointer, _ value: JSValue) -> Int? {
 
 
 @inlinable
-public func JSValueToBool(_ context: OpaquePointer, _ value: JSValue) -> Bool? {
+public func JSValueToBool(_ context: OpaquePointer, _ value: JSValue?) -> Bool? {
+    guard let value = value else { return nil }
+    guard JS_IsUndefined(value) == 0 else { return nil }
     guard JS_IsBool(value) != 0 else { return nil }
     return JS_ToBool(context, value) != 0
 }

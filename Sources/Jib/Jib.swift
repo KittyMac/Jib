@@ -72,6 +72,8 @@ public class Jib {
     public let `false`: JSValue
 
     public var exception: Hitch?
+    
+    private var customFunctions: [JibFunction] = []
         
     @usableFromInline
     let lock = NSLock()
@@ -80,7 +82,8 @@ public class Jib {
     deinit {
         lock.lock(); defer { lock.unlock() }
         
-        // JS_FreeValue(context, global)
+        customFunctions.removeAll()
+        
         JS_FreeContext(context)
         JS_FreeRuntime(runtime)
 
@@ -139,24 +142,25 @@ public class Jib {
     }
     
     // MARK: - JS Call
-    private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
+    private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValue? {
         lock.lock(); defer { lock.unlock() }
-        var jsException: JSObjectRef? = nil
-        let convertedArgs = args.map { $0?.createJibValue(self) }
+        
+        var convertedArgs = args.map { ($0?.createJibValue(self)) ?? JS_NewUndefined(context) }
         if args.count != convertedArgs.count {
             self.exception = "jib.call failed to convert all arguments to JSValues"
-            // print(exception ?? "unknown exception occurred")
-            return nil
         }
-        let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
-        if let jsException = jsException {
-            return record(exception: jsException)
-        }
-        return jsValue
+        
+        let result = JS_Call(context,
+                             function.functionValueRef,
+                             undefined,
+                             Int32(convertedArgs.count),
+                             &convertedArgs)
+        guard let _ = recordIf(exception: result) else { return nil }
+        return result
     }
     
     public func call<T: Decodable>(decoded function: JibFunction, _ args: [JibUnknown?]) -> T? { return JSValueToDecodable(context, call(jsvalue: function, args)) }
-    public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? { return JSValueToFunction(self, call(jsvalue: function, args)) }
+    //public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? { return JSValueToFunction(self, call(jsvalue: function, args)) }
     public func call(hitch function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToHitch(context, call(jsvalue: function, args)) }
     public func call(halfhitch function: JibFunction, _ args: [JibUnknown?]) -> HalfHitch? { return JSValueToHitch(context, call(jsvalue: function, args))?.halfhitch() }
     public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: function, args))?.toString() }
@@ -165,7 +169,7 @@ public class Jib {
     public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: function, args)) }
     public func call(bool function: JibFunction, _ args: [JibUnknown?]) -> Bool? { return JSValueToBool(context, call(jsvalue: function, args)) }
     public func call(json function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToJson(context, call(jsvalue: function, args)) }
-    public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: function, args) != nil }
+    public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: function, args) }
     
     // MARK: - JS Evaluation
     @discardableResult
@@ -366,7 +370,7 @@ public class Jib {
     public func new(function name: HalfHitch, body: @escaping JibFunctionBody) -> JibFunction? {
         lock.lock(); defer { lock.unlock() }
         guard let function = JibFunction(jib: self, name: name, body: body) else { return nil }
-        //customFunctions.append(function)
+        customFunctions.append(function)
         return function
     }
     
