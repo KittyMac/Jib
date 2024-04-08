@@ -82,15 +82,18 @@ public class Jib {
     deinit {
         lock.lock(); defer { lock.unlock() }
         
-        customFunctions.removeAll()
+        customFunctions.forEach { fnc in
+            JS_FreeValue(context, fnc.functionValueRef)
+        }
         
         JS_FreeContext(context)
         JS_FreeRuntime(runtime)
-
     }
     
-    public init() {
+    public init(maxStackSize: Int = 32 * 1024 * 1024) {
         runtime = JS_NewRuntime()
+        JS_SetMaxStackSize(runtime, maxStackSize)
+        
         context = JS_NewContext(runtime)
         
         undefined = JS_NewUndefined(context)

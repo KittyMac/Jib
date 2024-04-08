@@ -55,8 +55,6 @@ public class JibFunction {
     
     deinit {
         let _: JibBody? = MakeReleasedClass(bodyPtr)
-        
-        JS_FreeValue(context, functionValueRef)
     }
     
     @usableFromInline
