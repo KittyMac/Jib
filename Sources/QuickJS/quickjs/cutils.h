@@ -73,12 +73,12 @@ int strstart(const char *str, const char *val, const char **ptr);
 int has_suffix(const char *str, const char *suffix);
 
 /* Prevent UB when n == 0 and (src == NULL or dest == NULL) */
-static inline void memcpy_no_ub(void *dest, const void *src, size_t n) {
+static force_inline void memcpy_no_ub(void *dest, const void *src, size_t n) {
     if (n)
         memcpy(dest, src, n);
 }
 
-static inline int max_int(int a, int b)
+static force_inline int max_int(int a, int b)
 {
     if (a > b)
         return a;
@@ -86,7 +86,7 @@ static inline int max_int(int a, int b)
         return b;
 }
 
-static inline int min_int(int a, int b)
+static force_inline int min_int(int a, int b)
 {
     if (a < b)
         return a;
@@ -94,7 +94,7 @@ static inline int min_int(int a, int b)
         return b;
 }
 
-static inline uint32_t max_uint32(uint32_t a, uint32_t b)
+static force_inline uint32_t max_uint32(uint32_t a, uint32_t b)
 {
     if (a > b)
         return a;
@@ -102,7 +102,7 @@ static inline uint32_t max_uint32(uint32_t a, uint32_t b)
         return b;
 }
 
-static inline uint32_t min_uint32(uint32_t a, uint32_t b)
+static force_inline uint32_t min_uint32(uint32_t a, uint32_t b)
 {
     if (a < b)
         return a;
@@ -110,7 +110,7 @@ static inline uint32_t min_uint32(uint32_t a, uint32_t b)
         return b;
 }
 
-static inline int64_t max_int64(int64_t a, int64_t b)
+static force_inline int64_t max_int64(int64_t a, int64_t b)
 {
     if (a > b)
         return a;
@@ -118,7 +118,7 @@ static inline int64_t max_int64(int64_t a, int64_t b)
         return b;
 }
 
-static inline int64_t min_int64(int64_t a, int64_t b)
+static force_inline int64_t min_int64(int64_t a, int64_t b)
 {
     if (a < b)
         return a;
@@ -127,25 +127,25 @@ static inline int64_t min_int64(int64_t a, int64_t b)
 }
 
 /* WARNING: undefined if a = 0 */
-static inline int clz32(unsigned int a)
+static force_inline int clz32(unsigned int a)
 {
     return __builtin_clz(a);
 }
 
 /* WARNING: undefined if a = 0 */
-static inline int clz64(uint64_t a)
+static force_inline int clz64(uint64_t a)
 {
     return __builtin_clzll(a);
 }
 
 /* WARNING: undefined if a = 0 */
-static inline int ctz32(unsigned int a)
+static force_inline int ctz32(unsigned int a)
 {
     return __builtin_ctz(a);
 }
 
 /* WARNING: undefined if a = 0 */
-static inline int ctz64(uint64_t a)
+static force_inline int ctz64(uint64_t a)
 {
     return __builtin_ctzll(a);
 }
@@ -162,75 +162,75 @@ struct __attribute__((packed)) packed_u16 {
     uint16_t v;
 };
 
-static inline uint64_t get_u64(const uint8_t *tab)
+static force_inline uint64_t get_u64(const uint8_t *tab)
 {
     return ((const struct packed_u64 *)tab)->v;
 }
 
-static inline int64_t get_i64(const uint8_t *tab)
+static force_inline int64_t get_i64(const uint8_t *tab)
 {
     return (int64_t)((const struct packed_u64 *)tab)->v;
 }
 
-static inline void put_u64(uint8_t *tab, uint64_t val)
+static force_inline void put_u64(uint8_t *tab, uint64_t val)
 {
     ((struct packed_u64 *)tab)->v = val;
 }
 
-static inline uint32_t get_u32(const uint8_t *tab)
+static force_inline uint32_t get_u32(const uint8_t *tab)
 {
     return ((const struct packed_u32 *)tab)->v;
 }
 
-static inline int32_t get_i32(const uint8_t *tab)
+static force_inline int32_t get_i32(const uint8_t *tab)
 {
     return (int32_t)((const struct packed_u32 *)tab)->v;
 }
 
-static inline void put_u32(uint8_t *tab, uint32_t val)
+static force_inline void put_u32(uint8_t *tab, uint32_t val)
 {
     ((struct packed_u32 *)tab)->v = val;
 }
 
-static inline uint32_t get_u16(const uint8_t *tab)
+static force_inline uint32_t get_u16(const uint8_t *tab)
 {
     return ((const struct packed_u16 *)tab)->v;
 }
 
-static inline int32_t get_i16(const uint8_t *tab)
+static force_inline int32_t get_i16(const uint8_t *tab)
 {
     return (int16_t)((const struct packed_u16 *)tab)->v;
 }
 
-static inline void put_u16(uint8_t *tab, uint16_t val)
+static force_inline void put_u16(uint8_t *tab, uint16_t val)
 {
     ((struct packed_u16 *)tab)->v = val;
 }
 
-static inline uint32_t get_u8(const uint8_t *tab)
+static force_inline uint32_t get_u8(const uint8_t *tab)
 {
     return *tab;
 }
 
-static inline int32_t get_i8(const uint8_t *tab)
+static force_inline int32_t get_i8(const uint8_t *tab)
 {
     return (int8_t)*tab;
 }
 
-static inline void put_u8(uint8_t *tab, uint8_t val)
+static force_inline void put_u8(uint8_t *tab, uint8_t val)
 {
     *tab = val;
 }
 
 #ifndef bswap16
-static inline uint16_t bswap16(uint16_t x)
+static force_inline uint16_t bswap16(uint16_t x)
 {
     return (x >> 8) | (x << 8);
 }
 #endif
 
 #ifndef bswap32
-static inline uint32_t bswap32(uint32_t v)
+static force_inline uint32_t bswap32(uint32_t v)
 {
     return ((v & 0xff000000) >> 24) | ((v & 0x00ff0000) >>  8) |
         ((v & 0x0000ff00) <<  8) | ((v & 0x000000ff) << 24);
@@ -238,7 +238,7 @@ static inline uint32_t bswap32(uint32_t v)
 #endif
 
 #ifndef bswap64
-static inline uint64_t bswap64(uint64_t v)
+static force_inline uint64_t bswap64(uint64_t v)
 {
     return ((v & ((uint64_t)0xff << (7 * 8))) >> (7 * 8)) |
         ((v & ((uint64_t)0xff << (6 * 8))) >> (5 * 8)) |
@@ -271,25 +271,25 @@ int dbuf_put(DynBuf *s, const uint8_t *data, size_t len);
 int dbuf_put_self(DynBuf *s, size_t offset, size_t len);
 int dbuf_putc(DynBuf *s, uint8_t c);
 int dbuf_putstr(DynBuf *s, const char *str);
-static inline int dbuf_put_u16(DynBuf *s, uint16_t val)
+static force_inline int dbuf_put_u16(DynBuf *s, uint16_t val)
 {
     return dbuf_put(s, (uint8_t *)&val, 2);
 }
-static inline int dbuf_put_u32(DynBuf *s, uint32_t val)
+static force_inline int dbuf_put_u32(DynBuf *s, uint32_t val)
 {
     return dbuf_put(s, (uint8_t *)&val, 4);
 }
-static inline int dbuf_put_u64(DynBuf *s, uint64_t val)
+static force_inline int dbuf_put_u64(DynBuf *s, uint64_t val)
 {
     return dbuf_put(s, (uint8_t *)&val, 8);
 }
 int __attribute__((format(printf, 2, 3))) dbuf_printf(DynBuf *s,
                                                       const char *fmt, ...);
 void dbuf_free(DynBuf *s);
-static inline BOOL dbuf_error(DynBuf *s) {
+static force_inline BOOL dbuf_error(DynBuf *s) {
     return s->error;
 }
-static inline void dbuf_set_error(DynBuf *s)
+static force_inline void dbuf_set_error(DynBuf *s)
 {
     s->error = TRUE;
 }
@@ -299,37 +299,37 @@ static inline void dbuf_set_error(DynBuf *s)
 int unicode_to_utf8(uint8_t *buf, unsigned int c);
 int unicode_from_utf8(const uint8_t *p, int max_len, const uint8_t **pp);
 
-static inline BOOL is_surrogate(uint32_t c)
+static force_inline BOOL is_surrogate(uint32_t c)
 {
     return (c >> 11) == (0xD800 >> 11); // 0xD800-0xDFFF
 }
 
-static inline BOOL is_hi_surrogate(uint32_t c)
+static force_inline BOOL is_hi_surrogate(uint32_t c)
 {
     return (c >> 10) == (0xD800 >> 10); // 0xD800-0xDBFF
 }
 
-static inline BOOL is_lo_surrogate(uint32_t c)
+static force_inline BOOL is_lo_surrogate(uint32_t c)
 {
     return (c >> 10) == (0xDC00 >> 10); // 0xDC00-0xDFFF
 }
 
-static inline uint32_t get_hi_surrogate(uint32_t c)
+static force_inline uint32_t get_hi_surrogate(uint32_t c)
 {
     return (c >> 10) - (0x10000 >> 10) + 0xD800;
 }
 
-static inline uint32_t get_lo_surrogate(uint32_t c)
+static force_inline uint32_t get_lo_surrogate(uint32_t c)
 {
     return (c & 0x3FF) | 0xDC00;
 }
 
-static inline uint32_t from_surrogate(uint32_t hi, uint32_t lo)
+static force_inline uint32_t from_surrogate(uint32_t hi, uint32_t lo)
 {
     return 0x10000 + 0x400 * (hi - 0xD800) + (lo - 0xDC00);
 }
 
-static inline int from_hex(int c)
+static force_inline int from_hex(int c)
 {
     if (c >= '0' && c <= '9')
         return c - '0';
