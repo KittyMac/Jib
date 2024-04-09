@@ -579,66 +579,66 @@ static js_force_inline JSValue JS_NewFloat64(JSContext *ctx, double d)
     return __JS_NewFloat64(ctx, d);
 }
 
-static inline JS_BOOL JS_IsNumber(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsNumber(JSValueConst v)
 {
     int tag = JS_VALUE_GET_TAG(v);
     return tag == JS_TAG_INT || JS_TAG_IS_FLOAT64(tag);
 }
 
-static inline JS_BOOL JS_IsBigInt(JSContext *ctx, JSValueConst v)
+static js_force_inline JS_BOOL JS_IsBigInt(JSContext *ctx, JSValueConst v)
 {
     int tag = JS_VALUE_GET_TAG(v);
     return tag == JS_TAG_BIG_INT;
 }
 
-static inline JS_BOOL JS_IsBigFloat(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsBigFloat(JSValueConst v)
 {
     int tag = JS_VALUE_GET_TAG(v);
     return tag == JS_TAG_BIG_FLOAT;
 }
 
-static inline JS_BOOL JS_IsBigDecimal(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsBigDecimal(JSValueConst v)
 {
     int tag = JS_VALUE_GET_TAG(v);
     return tag == JS_TAG_BIG_DECIMAL;
 }
 
-static inline JS_BOOL JS_IsBool(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsBool(JSValueConst v)
 {
     return JS_VALUE_GET_TAG(v) == JS_TAG_BOOL;
 }
 
-static inline JS_BOOL JS_IsNull(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsNull(JSValueConst v)
 {
     return JS_VALUE_GET_TAG(v) == JS_TAG_NULL;
 }
 
-static inline JS_BOOL JS_IsUndefined(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsUndefined(JSValueConst v)
 {
     return JS_VALUE_GET_TAG(v) == JS_TAG_UNDEFINED;
 }
 
-static inline JS_BOOL JS_IsException(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsException(JSValueConst v)
 {
     return js_unlikely(JS_VALUE_GET_TAG(v) == JS_TAG_EXCEPTION);
 }
 
-static inline JS_BOOL JS_IsUninitialized(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsUninitialized(JSValueConst v)
 {
     return js_unlikely(JS_VALUE_GET_TAG(v) == JS_TAG_UNINITIALIZED);
 }
 
-static inline JS_BOOL JS_IsString(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsString(JSValueConst v)
 {
     return JS_VALUE_GET_TAG(v) == JS_TAG_STRING;
 }
 
-static inline JS_BOOL JS_IsSymbol(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsSymbol(JSValueConst v)
 {
     return JS_VALUE_GET_TAG(v) == JS_TAG_SYMBOL;
 }
 
-static inline JS_BOOL JS_IsObject(JSValueConst v)
+static js_force_inline JS_BOOL JS_IsObject(JSValueConst v)
 {
     return JS_VALUE_GET_TAG(v) == JS_TAG_OBJECT;
 }
@@ -656,7 +656,7 @@ JSValue __js_printf_like(2, 3) JS_ThrowInternalError(JSContext *ctx, const char 
 JSValue JS_ThrowOutOfMemory(JSContext *ctx);
 
 void __JS_FreeValue(JSContext *ctx, JSValue v);
-static inline void JS_FreeValue(JSContext *ctx, JSValue v)
+static js_force_inline void JS_FreeValue(JSContext *ctx, JSValue v)
 {
     if (JS_VALUE_HAS_REF_COUNT(v)) {
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
@@ -666,7 +666,7 @@ static inline void JS_FreeValue(JSContext *ctx, JSValue v)
     }
 }
 void __JS_FreeValueRT(JSRuntime *rt, JSValue v);
-static inline void JS_FreeValueRT(JSRuntime *rt, JSValue v)
+static js_force_inline void JS_FreeValueRT(JSRuntime *rt, JSValue v)
 {
     if (JS_VALUE_HAS_REF_COUNT(v)) {
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
@@ -676,7 +676,7 @@ static inline void JS_FreeValueRT(JSRuntime *rt, JSValue v)
     }
 }
 
-static inline JSValue JS_DupValue(JSContext *ctx, JSValueConst v)
+static js_force_inline JSValue JS_DupValue(JSContext *ctx, JSValueConst v)
 {
     if (JS_VALUE_HAS_REF_COUNT(v)) {
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
@@ -685,7 +685,7 @@ static inline JSValue JS_DupValue(JSContext *ctx, JSValueConst v)
     return (JSValue)v;
 }
 
-static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
+static js_force_inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
 {
     if (JS_VALUE_HAS_REF_COUNT(v)) {
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
@@ -696,7 +696,7 @@ static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
 
 int JS_ToBool(JSContext *ctx, JSValueConst val); /* return -1 for JS_EXCEPTION */
 int JS_ToInt32(JSContext *ctx, int32_t *pres, JSValueConst val);
-static inline int JS_ToUint32(JSContext *ctx, uint32_t *pres, JSValueConst val)
+static js_force_inline int JS_ToUint32(JSContext *ctx, uint32_t *pres, JSValueConst val)
 {
     return JS_ToInt32(ctx, (int32_t*)pres, val);
 }
@@ -714,11 +714,11 @@ JSValue JS_NewAtomString(JSContext *ctx, const char *str);
 JSValue JS_ToString(JSContext *ctx, JSValueConst val);
 JSValue JS_ToPropertyKey(JSContext *ctx, JSValueConst val);
 const char *JS_ToCStringLen2(JSContext *ctx, size_t *plen, JSValueConst val1, JS_BOOL cesu8);
-static inline const char *JS_ToCStringLen(JSContext *ctx, size_t *plen, JSValueConst val1)
+static js_force_inline const char *JS_ToCStringLen(JSContext *ctx, size_t *plen, JSValueConst val1)
 {
     return JS_ToCStringLen2(ctx, plen, val1, 0);
 }
-static inline const char *JS_ToCString(JSContext *ctx, JSValueConst val1)
+static js_force_inline const char *JS_ToCString(JSContext *ctx, JSValueConst val1)
 {
     return JS_ToCStringLen2(ctx, NULL, val1, 0);
 }
@@ -757,7 +757,7 @@ JSValue JS_GetPropertyUint32(JSContext *ctx, JSValueConst this_obj,
 int JS_SetPropertyInternal(JSContext *ctx, JSValueConst obj,
                            JSAtom prop, JSValue val, JSValueConst this_obj,
                            int flags);
-static inline int JS_SetProperty(JSContext *ctx, JSValueConst this_obj,
+static js_force_inline int JS_SetProperty(JSContext *ctx, JSValueConst this_obj,
                                  JSAtom prop, JSValue val)
 {
     return JS_SetPropertyInternal(ctx, this_obj, prop, val, this_obj, JS_PROP_THROW);
