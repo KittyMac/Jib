@@ -21,6 +21,7 @@ if engine == nil {
 
 var jibSourcePath = "Sources/Unknown"
 var jibDependencies: [Target.Dependency] = []
+var dynamicLibrary: [Product] = []
 
 if engine == "JSC" {
     jibSourcePath = "Sources/Jib/JSC"
@@ -38,6 +39,11 @@ if engine == "QJS" {
         "Hitch",
         "Chronometer"
     ]
+    #if os(Android) || os(Windows)
+    dynamicLibrary = [
+        .library( name: "CQuickJSLib", type: .dynamic, targets: ["CQuickJS"])
+    ]
+    #endif
 }
 
 var jscLibrary = "javascriptcoregtk-4.0"
@@ -50,8 +56,9 @@ let package = Package(
     platforms: [
         .macOS(.v10_13), .iOS(.v11)
     ],
-    products: [
+    products: dynamicLibrary + [
         .library( name: "Jib", targets: ["Jib"]),
+        
     ],
     dependencies: [
         .package(url: "https://github.com/KittyMac/Chronometer.git", from: "0.1.0"),
