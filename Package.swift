@@ -9,18 +9,20 @@ import Foundation
 // setenv("JIB", "JSC", 1)
 // setenv("JIB", "QJS", 1)
 
-if ProcessInfo.processInfo.environment["JIB"] == nil {
+var engine: String? = ProcessInfo.processInfo.environment["JIB"]
+
+if engine == nil {
 #if os(Android) || os(Linux) || os(Windows)
-    setenv("JIB", "QJS", 1)
+    engine = "QJS"
 #else
-    setenv("JIB", "JSC", 1)
+    engine = "JSC"
 #endif
 }
 
 var jibSourcePath = "Sources/Unknown"
 var jibDependencies: [Target.Dependency] = []
 
-if ProcessInfo.processInfo.environment["JIB"] == "JSC" {
+if engine == "JSC" {
     jibSourcePath = "Sources/Jib/JSC"
     jibDependencies = [
         "CJSCore",
@@ -29,7 +31,7 @@ if ProcessInfo.processInfo.environment["JIB"] == "JSC" {
     ]
 }
 
-if ProcessInfo.processInfo.environment["JIB"] == "QJS" {
+if engine == "QJS" {
     jibSourcePath = "Sources/Jib/QuickJS"
     jibDependencies = [
         "CQuickJS",
