@@ -76,6 +76,8 @@
 #endif
 
 #include "../win32_compat.h"
+#undef CONFIG_ATOMICS
+#undef CONFIG_STACK_CHECK
 
 /* dump object free */
 //#define DUMP_FREE
@@ -16254,12 +16256,15 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
     sf->prev_frame = rt->current_stack_frame;
     rt->current_stack_frame = sf;
     ctx = b->realm; /* set the current realm */
+    
+    int call_argc;
+    JSValue *call_argv;
+    JSValue val;
+    JSValue tmp;
+    JSAtom atom;
 
  restart:
     for(;;) {
-        int call_argc;
-        JSValue *call_argv;
-
         SWITCH(pc) {
         CASE(OP_push_i32):
             *sp++ = JS_NewInt32(ctx, get_u32(pc));
@@ -16302,8 +16307,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_get_length):
             {
-                JSValue val;
-
                 val = JS_GetProperty(ctx, sp[-1], JS_ATOM_length);
                 if (unlikely(JS_IsException(val)))
                     goto exception;
@@ -16325,7 +16328,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_push_this):
             /* OP_push_this is only called at the start of a function */
             {
-                JSValue val;
                 if (!(b->js_mode & JS_MODE_STRICT)) {
                     uint32_t tag = JS_VALUE_GET_TAG(this_obj);
                     if (likely(tag == JS_TAG_OBJECT))
@@ -16469,7 +16471,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_perm3): /* obj a b -> a obj b (213) */
             {
-                JSValue tmp;
                 tmp = sp[-2];
                 sp[-2] = sp[-3];
                 sp[-3] = tmp;
@@ -16477,7 +16478,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_rot3l): /* x a b -> a b x (231) */
             {
-                JSValue tmp;
                 tmp = sp[-3];
                 sp[-3] = sp[-2];
                 sp[-2] = sp[-1];
@@ -16486,7 +16486,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_rot4l): /* x a b c -> a b c x */
             {
-                JSValue tmp;
                 tmp = sp[-4];
                 sp[-4] = sp[-3];
                 sp[-3] = sp[-2];
@@ -16496,7 +16495,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_rot5l): /* x a b c d -> a b c d x */
             {
-                JSValue tmp;
                 tmp = sp[-5];
                 sp[-5] = sp[-4];
                 sp[-4] = sp[-3];
@@ -16507,7 +16505,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_rot3r): /* a b x -> x a b (312) */
             {
-                JSValue tmp;
                 tmp = sp[-1];
                 sp[-1] = sp[-2];
                 sp[-2] = sp[-3];
@@ -16516,7 +16513,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_perm4): /* obj prop a b -> a obj prop b */
             {
-                JSValue tmp;
                 tmp = sp[-2];
                 sp[-2] = sp[-3];
                 sp[-3] = sp[-4];
@@ -16525,7 +16521,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_perm5): /* this obj prop a b -> a this obj prop b */
             {
-                JSValue tmp;
                 tmp = sp[-2];
                 sp[-2] = sp[-3];
                 sp[-3] = sp[-4];
@@ -16535,7 +16530,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_swap): /* a b -> b a */
             {
-                JSValue tmp;
                 tmp = sp[-2];
                 sp[-2] = sp[-1];
                 sp[-1] = tmp;
@@ -16723,7 +16717,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 #define JS_THROW_ERROR_DELETE_SUPER   3
 #define JS_THROW_ERROR_ITERATOR_THROW 4
             {
-                JSAtom atom;
                 int type;
                 atom = get_u32(pc);
                 type = pc[4];
@@ -16830,7 +16823,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_import):
             {
-                JSValue val;
                 val = js_dynamic_import(ctx, sp[-1]);
                 if (JS_IsException(val))
                     goto exception;
@@ -16842,7 +16834,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_check_var):
             {
                 int ret;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -16856,8 +16847,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_get_var_undef):
         CASE(OP_get_var):
             {
-                JSValue val;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -16872,7 +16861,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_put_var_init):
             {
                 int ret;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -16886,7 +16874,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_put_var_strict):
             {
                 int ret;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -16904,7 +16891,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_check_define_var):
             {
-                JSAtom atom;
                 int flags;
                 atom = get_u32(pc);
                 flags = pc[4];
@@ -16915,7 +16901,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_define_var):
             {
-                JSAtom atom;
                 int flags;
                 atom = get_u32(pc);
                 flags = pc[4];
@@ -16926,7 +16911,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_define_func):
             {
-                JSAtom atom;
                 int flags;
                 atom = get_u32(pc);
                 flags = pc[4];
@@ -17037,7 +17021,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_get_var_ref):
             {
                 int idx;
-                JSValue val;
                 idx = get_u16(pc);
                 pc += 2;
                 val = *var_refs[idx]->pvalue;
@@ -17065,7 +17048,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_get_var_ref_check):
             {
                 int idx;
-                JSValue val;
                 idx = get_u16(pc);
                 pc += 2;
                 val = *var_refs[idx]->pvalue;
@@ -17178,7 +17160,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             {
                 JSVarRef *var_ref;
                 JSProperty *pr;
-                JSAtom atom;
                 int idx;
                 atom = get_u32(pc);
                 idx = get_u16(pc + 4);
@@ -17206,7 +17187,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_make_var_ref):
             {
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -17488,8 +17468,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_get_field):
             {
-                JSValue val;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -17503,8 +17481,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_get_field2):
             {
-                JSValue val;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -17518,7 +17494,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_put_field):
             {
                 int ret;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -17533,8 +17508,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_private_symbol):
             {
-                JSAtom atom;
-                JSValue val;
 
                 atom = get_u32(pc);
                 pc += 4;
@@ -17547,8 +17520,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_get_private_field):
             {
-                JSValue val;
-
                 val = JS_GetPrivateField(ctx, sp[-2], sp[-1]);
                 JS_FreeValue(ctx, sp[-1]);
                 JS_FreeValue(ctx, sp[-2]);
@@ -17585,7 +17556,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_define_field):
             {
                 int ret;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -17600,7 +17570,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_set_name):
             {
                 int ret;
-                JSAtom atom;
                 atom = get_u32(pc);
                 pc += 4;
 
@@ -17637,7 +17606,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             {
                 JSValue getter, setter, value;
                 JSValueConst obj;
-                JSAtom atom;
                 int flags, ret, op_flags;
                 BOOL is_computed;
 #define OP_DEFINE_METHOD_METHOD 0
@@ -17696,7 +17664,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_define_class_computed):
             {
                 int class_flags;
-                JSAtom atom;
 
                 atom = get_u32(pc);
                 class_flags = pc[4];
@@ -17710,8 +17677,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_get_array_el):
             {
-                JSValue val;
-
                 val = JS_GetPropertyValue(ctx, sp[-2], sp[-1]);
                 JS_FreeValue(ctx, sp[-2]);
                 sp[-2] = val;
@@ -17723,8 +17688,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_get_array_el2):
             {
-                JSValue val;
-
                 val = JS_GetPropertyValue(ctx, sp[-2], sp[-1]);
                 sp[-1] = val;
                 if (unlikely(JS_IsException(val)))
@@ -17734,7 +17697,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_get_ref_value):
             {
-                JSValue val;
                 if (unlikely(JS_IsUndefined(sp[-2]))) {
                     JSAtom atom = JS_ValueToAtom(ctx, sp[-1]);
                     if (atom != JS_ATOM_NULL) {
@@ -17754,8 +17716,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 
         CASE(OP_get_super_value):
             {
-                JSValue val;
-                JSAtom atom;
                 atom = JS_ValueToAtom(ctx, sp[-1]);
                 if (unlikely(atom == JS_ATOM_NULL))
                     goto exception;
@@ -17813,7 +17773,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_put_super_value):
             {
                 int ret;
-                JSAtom atom;
                 if (JS_VALUE_GET_TAG(sp[-3]) != JS_TAG_OBJECT) {
                     JS_ThrowTypeErrorNotAnObject(ctx);
                     goto exception;
@@ -18396,7 +18355,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
         CASE(OP_typeof):
             {
                 JSValue op1;
-                JSAtom atom;
 
                 op1 = sp[-1];
                 atom = js_operator_typeof(ctx, op1);
@@ -18411,7 +18369,6 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             BREAK;
         CASE(OP_delete_var):
             {
-                JSAtom atom;
                 int ret;
 
                 atom = get_u32(pc);

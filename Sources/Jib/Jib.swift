@@ -90,10 +90,8 @@ public class Jib {
         JS_FreeRuntime(runtime)
     }
     
-    public init(maxStackSize: Int = 128 * 1024 * 1024) {
+    public init() {
         runtime = JS_NewRuntime()
-        JS_SetMaxStackSize(runtime, maxStackSize)
-        
         context = JS_NewContext(runtime)
         
         undefined = JS_NewUndefined(context)
