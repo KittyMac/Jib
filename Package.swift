@@ -39,7 +39,7 @@ if engine == "QJS" {
         "Hitch",
         "Chronometer"
     ]
-    #if os(Android) || os(Windows)
+    #if os(Linux) || os(Android) || os(Windows)
     dynamicLibrary = [
         .library( name: "CQuickJSLib", type: .dynamic, targets: ["CQuickJS"])
     ]
