@@ -63,6 +63,8 @@ extension HalfHitch {
 }
 
 public class Jib {
+    public static let engine = "QuickJS"
+    
     public let runtime: OpaquePointer
     public let context: OpaquePointer
     public let global: JSValue

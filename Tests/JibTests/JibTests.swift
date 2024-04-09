@@ -4,6 +4,10 @@ import Hitch
 
 final class JibTests: XCTestCase {
     
+    func testJibEngine() {
+        print("Javascript engine: \(Jib.engine)")
+    }
+    
     func testEval0() {
         let jib = Jib()
         

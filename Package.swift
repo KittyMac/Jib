@@ -3,21 +3,40 @@
 import PackageDescription
 import Foundation
 
-#if canImport(JavaScriptCore)
-let jibSourcePath = "Sources/Jib/JSC"
-let jibDependencies: [Target.Dependency] = [
-    "CJSCore",
-    "Hitch",
-    "Chronometer"
-]
+// By default, Jib with use JavascriptCore on Apple platforms and
+// QuickJS on non-Apple platforms. If you would like to force a specific
+// engine, then set the appropriate environment variable
+// setenv("JIB", "JSC", 1)
+// setenv("JIB", "QJS", 1)
+
+if ProcessInfo.processInfo.environment["JIB"] == nil {
+#if os(Android) || os(Linux) || os(Windows)
+    setenv("JIB", "QJS", 1)
 #else
-let jibSourcePath = "Sources/Jib/QuickJS"
-let jibDependencies: [Target.Dependency] = [
-    "CQuickJS",
-    "Hitch",
-    "Chronometer"
-]
+    setenv("JIB", "JSC", 1)
 #endif
+}
+
+var jibSourcePath = "Sources/Unknown"
+var jibDependencies: [Target.Dependency] = []
+
+if ProcessInfo.processInfo.environment["JIB"] == "JSC" {
+    jibSourcePath = "Sources/Jib/JSC"
+    jibDependencies = [
+        "CJSCore",
+        "Hitch",
+        "Chronometer"
+    ]
+}
+
+if ProcessInfo.processInfo.environment["JIB"] == "QJS" {
+    jibSourcePath = "Sources/Jib/QuickJS"
+    jibDependencies = [
+        "CQuickJS",
+        "Hitch",
+        "Chronometer"
+    ]
+}
 
 var jscLibrary = "javascriptcoregtk-4.0"
 if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.1") {

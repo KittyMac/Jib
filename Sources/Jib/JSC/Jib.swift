@@ -41,6 +41,7 @@ extension HalfHitch {
 }
 
 public class Jib {
+    public static let engine = "JavascriptCore"
     
     public let group: JSContextGroupRef
     public let context: JSGlobalContextRef
