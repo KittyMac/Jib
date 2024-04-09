@@ -1998,11 +1998,9 @@ static int push_state(REExecContext *s,
     rs->cptr = cptr;
     rs->pc = pc;
     n = 2 * s->capture_count;
-    for(i = 0; i < n; i++)
-        rs->buf[i] = capture[i];
+    memcpy(rs->buf, capture, sizeof(void *) * n);
     stack_buf = (StackInt *)(rs->buf + n);
-    for(i = 0; i < stack_len; i++)
-        stack_buf[i] = stack[i];
+    memcpy(stack_buf, stack, sizeof(StackInt) * stack_len);
     return 0;
 }
 
@@ -2012,7 +2010,7 @@ static intptr_t lre_exec_backtrack(REExecContext *s, uint8_t **capture,
                                    const uint8_t *pc, const uint8_t *cptr,
                                    BOOL no_recurse)
 {
-    int opcode, ret;
+    uint8_t opcode, ret;
     int cbuf_type;
     uint32_t val, c;
     const uint8_t *cbuf_end;
@@ -2022,6 +2020,8 @@ static intptr_t lre_exec_backtrack(REExecContext *s, uint8_t **capture,
 
     for(;;) {
         //        printf("top=%p: pc=%d\n", th_list.top, (int)(pc - (bc_buf + RE_HEADER_LEN)));
+        
+        // ROCCO: optimize
         opcode = *pc++;
         switch(opcode) {
         case REOP_match:

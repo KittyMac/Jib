@@ -39,12 +39,6 @@
 
 /* enable it to check the multiplication result */
 //#define USE_MUL_CHECK
-#ifdef CONFIG_BIGNUM
-/* enable it to use FFT/NTT multiplication */
-#define USE_FFT_MUL
-/* enable decimal floating point support */
-#define USE_BF_DEC
-#endif
 
 //#define inline __attribute__((always_inline))
 
