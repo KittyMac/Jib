@@ -3,8 +3,8 @@
 import PackageDescription
 import Foundation
 
-// By default, Jib with use JavascriptCore on Apple platforms and
-// QuickJS on non-Apple platforms. If you would like to force a specific
+// By default, Jib will use JavascriptCore on platforms it is easily
+// available (ie all but Windows). If you would like to force a specific
 // engine, then set the appropriate environment variable
 // setenv("JIB", "JSC", 1)
 // setenv("JIB", "QJS", 1)
@@ -12,7 +12,7 @@ import Foundation
 var engine: String? = ProcessInfo.processInfo.environment["JIB"]
 
 if engine == nil {
-#if os(Android) || os(Linux) || os(Windows)
+#if os(Windows)
     engine = "QJS"
 #else
     engine = "JSC"
