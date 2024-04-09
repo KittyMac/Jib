@@ -3,6 +3,27 @@
 import PackageDescription
 import Foundation
 
+#if canImport(JavaScriptCore)
+let jibSourcePath = "Sources/Jib/JSC"
+let jibDependencies: [Target.Dependency] = [
+    "CJSCore",
+    "Hitch",
+    "Chronometer"
+]
+#else
+let jibSourcePath = "Sources/Jib/QuickJS"
+let jibDependencies: [Target.Dependency] = [
+    "CQuickJS",
+    "Hitch",
+    "Chronometer"
+]
+#endif
+
+var jscLibrary = "javascriptcoregtk-4.0"
+if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.1") {
+    jscLibrary = "javascriptcoregtk-4.1"
+}
+
 let package = Package(
     name: "Jib",
     platforms: [
@@ -17,15 +38,18 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "QuickJS"
+            name: "CJSCore",
+            linkerSettings: [
+                .linkedLibrary(jscLibrary, .when(platforms: [.linux]))
+            ]
+        ),
+        .target(
+            name: "CQuickJS"
         ),
         .target(
             name: "Jib",
-            dependencies: [
-                "QuickJS",
-                "Hitch",
-                "Chronometer"
-            ]
+            dependencies: jibDependencies,
+            path: jibSourcePath
         ),
         .testTarget(
             name: "JibTests",

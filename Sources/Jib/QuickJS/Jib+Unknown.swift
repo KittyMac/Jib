@@ -1,4 +1,4 @@
-import QuickJS
+import CQuickJS
 import Hitch
 
 typealias HitchArray = [Hitch]

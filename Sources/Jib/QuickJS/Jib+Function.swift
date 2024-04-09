@@ -1,4 +1,4 @@
-import QuickJS
+import CQuickJS
 import Hitch
 
 public typealias JibFunctionBody = ([Hitch]) -> JibUnknown?

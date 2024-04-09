@@ -1,7 +1,6 @@
 import XCTest
 import Jib
 import Hitch
-import QuickJS
 
 final class JibTests: XCTestCase {
     
@@ -127,7 +126,7 @@ final class JibTests: XCTestCase {
         let jib = Jib()
         
         guard let _ = jib.eval(" x.hello() ") else {
-            XCTAssertEqual(jib.exception, "ReferenceError: 'x' is not defined")
+            XCTAssertTrue(jib.exception?.starts(with: "ReferenceError: ") == true)
             return
         }
         XCTFail("exception was not thrown")

@@ -2,7 +2,7 @@ import Foundation
 import Hitch
 import Chronometer
 
-import QuickJS
+import CQuickJS
 
 /*
  enum {
