@@ -306,7 +306,15 @@ final class JibTests: XCTestCase {
     
     func testPerformance0() throws {
         // macOS, JSC-JIT: 0.035
-        // macOS, QJS: 0.753
+        // macOS, QJS: 0.292
+        
+        #if DEBUG
+        print("Performance test should not be run in DEBUG")
+        return
+        #endif
+        
+        // Note: regex ending in .* take 3x times longer than not, seems like
+        // we could make a regex optimized to handle cases like this!
         
         let jib = Jib()
                 
