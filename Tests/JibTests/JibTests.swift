@@ -303,4 +303,31 @@ final class JibTests: XCTestCase {
         }
         
     }
+    
+    func testPerformance0() throws {
+        // macOS, JSC-JIT: 0.035
+        // macOS, QJS: 0.753
+        
+        let jib = Jib()
+                
+        measure {
+            guard let _ = jib.eval("""
+                function test() {
+                    let regex = /^(Word A|Word B|Word C|Test 1|Test 2|Test 3|Test 4):?.*/i;
+                    let source = `Word B: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, (Word A) sunt in culpa qui officia deserunt mollit anim id est laborum.`;
+                    for(let i = 0; i < 100000; i ++) {
+                        let result = source.match(regex);
+                        if (result.length != 2) {
+                            throw new Error("regex failed");
+                        }
+                    }
+                }
+                test()
+                """
+            ) else {
+                XCTFail(jib.exception!.toString())
+                return
+            }
+        }
+    }
 }
