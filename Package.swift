@@ -25,8 +25,10 @@ var dynamicLibrary: [Product] = []
 
 if engine == "JSC" {
     jibSourcePath = "Sources/Jib/JSC"
-    jibDependencies = [
-        "CJSCore",
+    #if !canImport(JavaScriptCore)
+    jibDependencies = [ "CJSCore" ]
+    #endif
+    jibDependencies += [
         "Hitch",
         "Chronometer"
     ]
