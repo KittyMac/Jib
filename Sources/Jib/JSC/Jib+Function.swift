@@ -84,7 +84,7 @@ public class JibFunction {
         
         JSValueProtect(jib.context, objectRef)
         
-        var classDefinition = kJSClassDefinitionEmpty
+        var classDefinition = JSClassDefinition()
         jsClass = JSClassCreate(&classDefinition)
     }
     
@@ -92,7 +92,7 @@ public class JibFunction {
     init?(jib: Jib, name: HalfHitch, body: @escaping JibFunctionBody) {
         self.jib = jib
         
-        var classDefinition = kJSClassDefinitionEmpty
+        var classDefinition = JSClassDefinition()
         jsClass = JSClassCreate(&classDefinition)
         
         bodyPtr = MakeRetainedPtr(JibBody(body))

@@ -70,7 +70,8 @@ let package = Package(
         .target(
             name: "CJSCore",
             linkerSettings: [
-                .linkedLibrary(jscLibrary, .when(platforms: [.linux]))
+                .linkedLibrary(jscLibrary, .when(platforms: [.linux])),
+                .linkedLibrary("DLL/JavaScriptCore", .when(platforms: [.windows]))
             ]
         ),
         .target(
