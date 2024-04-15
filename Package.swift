@@ -11,6 +11,7 @@ import Foundation
 // NOTE: for Windows, you need to manually copy the DLLs from the DLL folder to
 // some place in your PATH. For development, you can copy them into the .build
 // folder.
+// Copy-Item -Path .\DLL\*.dll -Destination .\.build\debug\ -Recurse
 //
 // NOTE: to updated to newer versions of JSC on Windows, follow these directions:
 // https://docs.webkit.org/Ports/WindowsPort.html#downloading-build-artifacts-from-buildbot
