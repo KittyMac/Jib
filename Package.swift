@@ -48,8 +48,6 @@ if engine == "JSC" {
     }
     #endif
     #if os(Windows)
-    let sdkRoot: String = ProcessInfo.processInfo.environment["SDKROOT"]!
-    
     // Find correct local path to JavaScriptCore:
     // if we are building jib itself, its just "JavaScriptCore"
     // otherwise it is ".build/checkouts/Jib/JavaScriptCore"
@@ -59,8 +57,8 @@ if engine == "JSC" {
     }
         
     linkedLibrary = [
-        .linkedLibrary(javaScriptCoreLibPath, .when(platforms: [.windows])),
-        .linkedLibrary("\(sdkRoot)usr\\lib\\swift\\windows\\x86_64\\swiftCore", .when(platforms: [.windows]))
+        .linkedLibrary(javaScriptCoreLibPath),
+        .linkedLibrary("swiftCore")
     ]
     #endif
 }
@@ -78,9 +76,8 @@ if engine == "QJS" {
     ]
     #endif
     #if os(Windows)
-    let sdkRoot: String = ProcessInfo.processInfo.environment["SDKROOT"]!
     linkedLibrary = [
-        .linkedLibrary("\(sdkRoot)usr\\lib\\swift\\windows\\x86_64\\swiftCore")
+        .linkedLibrary("swiftCore")
     ]
     #endif
 }
