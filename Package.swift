@@ -3,21 +3,23 @@
 import PackageDescription
 import Foundation
 
-// By default, Jib will use JavascriptCore on platforms it is easily
-// available (ie all but Windows). If you would like to force a specific
-// engine, then set the appropriate environment variable
+// By default, Jib will use JavascriptCore on all platforms. If you would
+// like to try QuickJS instead, you can set the appropriate environment variable
 // setenv("JIB", "JSC", 1)
 // setenv("JIB", "QJS", 1)
+//
+// NOTE: for Windows, you need to manually copy the DLLs from the DLL folder to
+// some place in your PATH. For development, you can copy them into the .build
+// folder.
+//
+// NOTE: to updated to newer versions of JSC on Windows, follow these directions:
+// https://docs.webkit.org/Ports/WindowsPort.html#downloading-build-artifacts-from-buildbot
+// Download the archive from the buildbot, copy the DLL from bin64
+// Download the WebKitRequirements, copy the DLL from the bin64
+// You might need to generate a new .lib from JavaScriptCore.dll, in which case
+// use this tool: https://github.com/KHeresy/GenLibFromDll
 
-var engine: String? = ProcessInfo.processInfo.environment["JIB"]
-
-if engine == nil {
-#if os(Windows)
-    engine = "JSC"
-#else
-    engine = "JSC"
-#endif
-}
+var engine: String = ProcessInfo.processInfo.environment["JIB"] ?? "JSC"
 
 var jibSourcePath = "Sources/Unknown"
 var jibDependencies: [Target.Dependency] = []
@@ -35,16 +37,20 @@ if engine == "JSC" {
     ]
     #if os(Linux)
     if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.0") {
-        linkedLibrary = ["javascriptcoregtk-4.0"]
+        linkedLibrary = [
+            .linkedLibrary("javascriptcoregtk-4.0"),
+        ]
     } else if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.1") {
-        linkedLibrary = ["javascriptcoregtk-4.1"]
+        linkedLibrary = [
+            .linkedLibrary("javascriptcoregtk-4.1"),
+        ]
     }
     #endif
     #if os(Windows)
     let sdkRoot: String = ProcessInfo.processInfo.environment["SDKROOT"]!
     linkedLibrary = [
-        .linkedLibrary("DLL/JavaScriptCore", .when(platforms: [.windows])),
-        .linkedLibrary("\(sdkRoot)usr\\lib\\swift\\windows\\x86_64\\swiftCore", .when(platforms: [.windows]))
+        .linkedLibrary("DLL/JavaScriptCore"),
+        .linkedLibrary("\(sdkRoot)usr\\lib\\swift\\windows\\x86_64\\swiftCore")
     ]
     #endif
 }
@@ -64,7 +70,7 @@ if engine == "QJS" {
     #if os(Windows)
     let sdkRoot: String = ProcessInfo.processInfo.environment["SDKROOT"]!
     linkedLibrary = [
-        .linkedLibrary("\(sdkRoot)usr\\lib\\swift\\windows\\x86_64\\swiftCore", .when(platforms: [.windows]))
+        .linkedLibrary("\(sdkRoot)usr\\lib\\swift\\windows\\x86_64\\swiftCore")
     ]
     #endif
 }
