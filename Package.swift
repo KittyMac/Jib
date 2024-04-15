@@ -43,7 +43,7 @@ if engine == "JSC" {
     #if os(Windows)
     let sdkRoot: String = ProcessInfo.processInfo.environment["SDKROOT"]!
     linkedLibrary = [
-        .linkedLibrary("DLL/JavaScriptCore", .when(platforms: [.windows])),
+        .linkedLibrary("JibDLL/JavaScriptCore", .when(platforms: [.windows])),
         .linkedLibrary("\(sdkRoot)usr\\lib\\swift\\windows\\x86_64\\swiftCore", .when(platforms: [.windows]))
     ]
     #endif
