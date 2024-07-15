@@ -57,7 +57,7 @@ public class Jib {
     private var customFunctions: [JibFunction] = []
     
     private let tag: String
-    private var released = false
+    internal var released = false
     
     @usableFromInline
     let lock = NSLock()
@@ -65,6 +65,8 @@ public class Jib {
     deinit {
         lock.lock(); defer { lock.unlock() }
         // print("Jib - deinit \(tag)")
+        customFunctions = []
+        printFn = nil
         if released == false {
             JSGlobalContextRelease(context)
             JSContextGroupRelease(group)

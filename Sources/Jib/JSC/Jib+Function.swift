@@ -69,7 +69,8 @@ public class JibFunction {
         
         JSClassRelease(jsClass)
         
-        if let jib = jib {
+        if let jib = jib,
+           jib.released == false {
             JSValueUnprotect(jib.context, objectRef)
         }
     }
