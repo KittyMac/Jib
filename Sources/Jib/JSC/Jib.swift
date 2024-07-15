@@ -68,6 +68,7 @@ public class Jib {
         if released == false {
             JSGlobalContextRelease(context)
             JSContextGroupRelease(group)
+            released = true
         }
     }
 
@@ -75,9 +76,11 @@ public class Jib {
         lock.lock(); defer { lock.unlock() }
         customFunctions = []
         printFn = nil
-        JSGlobalContextRelease(context)
-        JSContextGroupRelease(group)
-        released = true
+        if released == false {
+            JSGlobalContextRelease(context)
+            JSContextGroupRelease(group)
+            released = true
+        }
     }
     
     public init(clone: Jib? = nil,
