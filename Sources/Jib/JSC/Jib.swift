@@ -56,16 +56,36 @@ public class Jib {
     
     private var customFunctions: [JibFunction] = []
     
+    private let tag: String
+    private var released = false
+    
     @usableFromInline
     let lock = NSLock()
     
     deinit {
         lock.lock(); defer { lock.unlock() }
+        // print("Jib - deinit \(tag)")
+        if released == false {
+            JSGlobalContextRelease(context)
+            JSContextGroupRelease(group)
+        }
+    }
+
+    public func release() {
+        lock.lock(); defer { lock.unlock() }
+        customFunctions = []
+        printFn = nil
         JSGlobalContextRelease(context)
         JSContextGroupRelease(group)
+        released = true
     }
     
-    public init(clone: Jib? = nil) {
+    public init(clone: Jib? = nil,
+            _ tag: String = #function) {
+        
+        self.tag = tag
+        // print("Jib - init: \(tag)")
+        
         group = JSContextGroupCreate()
         context = JSGlobalContextCreateInGroup(group, nil)
         global = JSContextGetGlobalObject(context)
