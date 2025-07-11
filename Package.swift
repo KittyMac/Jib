@@ -84,9 +84,6 @@ if engine == "QJS" {
 
 let package = Package(
     name: "Jib",
-    platforms: [
-        .macOS(.v10_13), .iOS(.v11)
-    ],
     products: dynamicLibrary + [
         .library( name: "Jib", targets: ["Jib"])
     ],
