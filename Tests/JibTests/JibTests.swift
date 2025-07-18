@@ -251,6 +251,29 @@ final class JibTests: XCTestCase {
         queue.waitUntilAllOperationsAreFinished()
     }
     
+    func testThreadSafety2() throws {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 4
+        
+        
+        for idx in 0..<1000 {
+            let jib = Jib()
+            
+            queue.addOperation {
+                for _ in 0..<100 {
+                    jib.eval("print('here \(idx)');")
+                }
+                
+            }
+            queue.addOperation {
+                jib.eval("print('released \(idx)');")
+                jib.release()
+            }
+        }
+        
+        queue.waitUntilAllOperationsAreFinished()
+    }
+    
     func testParallelJib() throws {
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 20

@@ -129,8 +129,9 @@ public class Jib {
     }
     
     private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
-        guard released == false else { return nil }
         lock.lock(); defer { lock.unlock() }
+        guard released == false else { return nil }
+        
         var jsException: JSObjectRef? = nil
         let convertedArgs = args.map { $0?.createJibValue(self) }
         if args.count != convertedArgs.count {
@@ -168,8 +169,8 @@ public class Jib {
     
     @discardableResult
     public func new(function name: HalfHitch, body: @escaping JibFunctionBody) -> JibFunction? {
-        guard released == false else { return nil }
         lock.lock(); defer { lock.unlock() }
+        guard released == false else { return nil }
         
         guard let function = JibFunction(jib: self, name: name, body: body) else { return nil }
         customFunctions.append(function)
@@ -178,8 +179,8 @@ public class Jib {
     
     @discardableResult
     public func set(global name: HalfHitch, value: JibValue) -> Bool? {
-        guard released == false else { return nil }
         lock.lock(); defer { lock.unlock() }
+        guard released == false else { return nil }
         
         let jsString = CreateJSString(halfhitch: name)
         defer { JSStringRelease(jsString) }
@@ -202,8 +203,8 @@ public class Jib {
     // MARK: - JS Evaluation
     @discardableResult
     public func eval(_ script: HalfHitch) -> Bool? {
-        guard released == false else { return nil }
         lock.lock(); defer { lock.unlock() }
+        guard released == false else { return nil }
         
         // if that fails, attempt to resolve by evaluating it as a script
         return script.jsString { jsScript in
@@ -234,8 +235,9 @@ public class Jib {
     @inlinable
     public subscript<T: Decodable> (decoded exec: HalfHitch) -> T? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToDecodable(context, resolve(exec))
         }
     }
@@ -247,8 +249,9 @@ public class Jib {
     @inlinable
     public subscript (function exec: HalfHitch) -> JibFunction? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToFunction(self, resolve(exec))
         }
     }
@@ -260,8 +263,9 @@ public class Jib {
     @inlinable
     public subscript (hitch exec: HalfHitch) -> Hitch? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToHitch(context, resolve(exec))
         }
     }
@@ -273,8 +277,9 @@ public class Jib {
     @inlinable
     public subscript (halfhitch exec: HalfHitch) -> HalfHitch? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToHitch(context, resolve(exec))?.halfhitch()
         }
     }
@@ -286,8 +291,9 @@ public class Jib {
     @inlinable
     public subscript (string exec: HalfHitch) -> String? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToHitch(context, resolve(exec))?.toString()
         }
     }
@@ -311,8 +317,9 @@ public class Jib {
     @inlinable
     public subscript (double exec: HalfHitch) -> Double? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToDouble(context, resolve(exec))
         }
     }
@@ -324,8 +331,9 @@ public class Jib {
     @inlinable
     public subscript (int exec: HalfHitch) -> Int? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToInt(context, resolve(exec))
         }
     }
@@ -337,8 +345,9 @@ public class Jib {
     @inlinable
     public subscript (bool exec: HalfHitch) -> Bool? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToBool(context, resolve(exec))
         }
     }
@@ -350,8 +359,9 @@ public class Jib {
     @inlinable
     public subscript (json exec: HalfHitch) -> Hitch? {
         get {
-            guard released == false else { return nil }
             lock.lock(); defer { lock.unlock() }
+            guard released == false else { return nil }
+            
             return JSValueToJson(context, resolve(exec))
         }
     }
