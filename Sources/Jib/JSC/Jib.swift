@@ -159,8 +159,8 @@ public class Jib {
     public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: function, args) != nil }
     
     public func garbageCollect() {
-        guard released == false else { return }
         lock.lock(); defer { lock.unlock() }
+        guard released == false else { return }
         
         JSGarbageCollect(context)
     }
