@@ -299,6 +299,23 @@ final class JibTests: XCTestCase {
         queue.waitUntilAllOperationsAreFinished()
     }
     
+    func testFunctionAlternativeJib() throws {
+        let jib = Jib()
+        
+        jib.eval("""
+            let rover = {};
+            rover.startUp = function() {
+                return JSON.stringify(arguments); 
+            }
+        """)
+        
+        // normal method
+        let startUpFunction = jib[function: "rover.startUp"]!
+        
+        XCTAssertEqual(jib.call(decoded: startUpFunction, [0, true, "hello world"]), "{\"0\":0,\"1\":true,\"2\":\"hello world\"}")
+        XCTAssertEqual(jib.call(decoded: "rover.startUp", [0, true, "hello world"]), "{\"0\":0,\"1\":true,\"2\":\"hello world\"}")
+    }
+    
     func testConvenience() {
         let jib = Jib()
         

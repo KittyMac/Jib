@@ -128,6 +128,70 @@ public class Jib {
         }
     }
     
+    private func call(jsvalue script: String, _ args: [JibUnknown?]) -> JSValueRef? {
+        lock.lock(); defer { lock.unlock() }
+        guard released == false else { return nil }
+        
+        let convertedArgs = args.compactMap { $0?.createJibValue(self) }
+        if args.count != convertedArgs.count {
+            self.exception = "jib.call failed to convert all arguments to JSValues"
+            // print(exception ?? "unknown exception occurred")
+            return nil
+        }
+        
+        var count = 0
+        let hitch = Hitch(string: script)
+        hitch.append("(")
+        for convertedArg in convertedArgs {
+            let key: HalfHitch = "__jib_args{0}" << [count]
+            
+            _set(global: key, value: convertedArg)
+            hitch.append(key)
+            hitch.append(.comma)
+            
+            count += 1
+        }
+        hitch.count = hitch.count - 1
+        hitch.append(")")
+        
+        return hitch.jsString { jsScript in
+            defer { JSStringRelease(jsScript) }
+
+            var jsException: JSObjectRef? = nil
+            let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
+            if let jsException = jsException {
+                return record(exception: jsException)
+            }
+            return jsValue
+        }
+        
+        /*
+        var jsException: JSObjectRef? = nil
+        let convertedArgs = args.map { $0?.createJibValue(self) }
+        if args.count != convertedArgs.count {
+            self.exception = "jib.call failed to convert all arguments to JSValues"
+            // print(exception ?? "unknown exception occurred")
+            return nil
+        }
+        let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
+        if let jsException = jsException {
+            return record(exception: jsException)
+        }
+        return jsValue
+         */
+    }
+    
+    public func call<T: Decodable>(decoded script: String, _ args: [JibUnknown?]) -> T? { return JSValueToDecodable(context, call(jsvalue: script, args)) }
+    public func call(hitch script: String, _ args: [JibUnknown?]) -> Hitch? { return JSValueToHitch(context, call(jsvalue: script, args)) }
+    public func call(halfhitch script: String, _ args: [JibUnknown?]) -> HalfHitch? { return JSValueToHitch(context, call(jsvalue: script, args))?.halfhitch() }
+    public func call(string script: String, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: script, args))?.toString() }
+    public func call(date script: String, _ args: [JibUnknown?]) -> Date? { return JSValueToHitch(context, call(jsvalue: script, args))?.toString().date() }
+    public func call(double script: String, _ args: [JibUnknown?]) -> Double? { return JSValueToDouble(context, call(jsvalue: script, args)) }
+    public func call(int script: String, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: script, args)) }
+    public func call(bool script: String, _ args: [JibUnknown?]) -> Bool? { return JSValueToBool(context, call(jsvalue: script, args)) }
+    public func call(json script: String, _ args: [JibUnknown?]) -> Hitch? { return JSValueToJson(context, call(jsvalue: script, args)) }
+    public func call(none script: String, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: script, args) != nil }
+    
     private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
         lock.lock(); defer { lock.unlock() }
         guard released == false else { return nil }
@@ -178,8 +242,7 @@ public class Jib {
     }
     
     @discardableResult
-    public func set(global name: HalfHitch, value: JibValue) -> Bool? {
-        lock.lock(); defer { lock.unlock() }
+    private func _set(global name: HalfHitch, value: JibValue) -> Bool? {
         guard released == false else { return nil }
         
         let jsString = CreateJSString(halfhitch: name)
@@ -193,6 +256,12 @@ public class Jib {
         }
         
         return true
+    }
+    
+    @discardableResult
+    public func set(global name: HalfHitch, value: JibValue) -> Bool? {
+        lock.lock(); defer { lock.unlock() }
+        return _set(global: name, value: value)
     }
     
     @discardableResult
