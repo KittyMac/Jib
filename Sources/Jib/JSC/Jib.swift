@@ -52,9 +52,11 @@ public class Jib {
     
     public var exception: Hitch?
     
-    private var printFn: JibFunction? = nil
+    public var useMockFunctions: Bool = true
     
-    private var customFunctions: [JibFunction] = []
+    private var printFn: JibJSCFunction? = nil
+    
+    private var customFunctions: [JibJSCFunction] = []
     
     private let tag: String
     
@@ -128,86 +130,63 @@ public class Jib {
         }
     }
     
-    private func call(jsvalue script: String, _ args: [JibUnknown?]) -> JSValueRef? {
+    private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
         lock.lock(); defer { lock.unlock() }
         guard released == false else { return nil }
         
-        let convertedArgs = args.compactMap { $0?.createJibValue(self) }
-        if args.count != convertedArgs.count {
-            self.exception = "jib.call failed to convert all arguments to JSValues"
-            // print(exception ?? "unknown exception occurred")
-            return nil
-        }
-        
-        var count = 0
-        let hitch = Hitch(string: script)
-        hitch.append("(")
-        for convertedArg in convertedArgs {
-            let key: HalfHitch = "__jib_args{0}" << [count]
-            
-            _set(global: key, value: convertedArg)
-            hitch.append(key)
-            hitch.append(.comma)
-            
-            count += 1
-        }
-        hitch.count = hitch.count - 1
-        hitch.append(")")
-        
-        return hitch.jsString { jsScript in
-            defer { JSStringRelease(jsScript) }
-
+        if let function = function as? JibJSCFunction {
             var jsException: JSObjectRef? = nil
-            let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
+            let convertedArgs = args.map { $0?.createJibValue(self) }
+            if args.count != convertedArgs.count {
+                self.exception = "jib.call failed to convert all arguments to JSValues"
+                // print(exception ?? "unknown exception occurred")
+                return nil
+            }
+            let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
             if let jsException = jsException {
                 return record(exception: jsException)
             }
             return jsValue
         }
         
-        /*
-        var jsException: JSObjectRef? = nil
-        let convertedArgs = args.map { $0?.createJibValue(self) }
-        if args.count != convertedArgs.count {
-            self.exception = "jib.call failed to convert all arguments to JSValues"
-            // print(exception ?? "unknown exception occurred")
-            return nil
+        if let function = function as? JibMockFunction {
+            let convertedArgs = args.compactMap { $0?.createJibValue(self) }
+            if args.count != convertedArgs.count {
+                self.exception = "jib.call failed to convert all arguments to JSValues"
+                // print(exception ?? "unknown exception occurred")
+                return nil
+            }
+            
+            var count = 0
+            let hitch = Hitch(string: function.evalName)
+            hitch.append("(")
+            for convertedArg in convertedArgs {
+                let key: HalfHitch = "__jib_args{0}" << [count]
+                
+                _set(global: key, value: convertedArg)
+                hitch.append(key)
+                
+                if count < convertedArgs.count-1 {
+                    hitch.append(.comma)
+                }
+                
+                count += 1
+            }
+            hitch.append(")")
+            
+            return hitch.jsString { jsScript in
+                defer { JSStringRelease(jsScript) }
+
+                var jsException: JSObjectRef? = nil
+                let jsValue = JSEvaluateScript(context, jsScript, nil, nil, 0, &jsException)
+                if let jsException = jsException {
+                    return record(exception: jsException)
+                }
+                return jsValue
+            }
         }
-        let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
-        if let jsException = jsException {
-            return record(exception: jsException)
-        }
-        return jsValue
-         */
-    }
-    
-    public func call<T: Decodable>(decoded script: String, _ args: [JibUnknown?]) -> T? { return JSValueToDecodable(context, call(jsvalue: script, args)) }
-    public func call(hitch script: String, _ args: [JibUnknown?]) -> Hitch? { return JSValueToHitch(context, call(jsvalue: script, args)) }
-    public func call(halfhitch script: String, _ args: [JibUnknown?]) -> HalfHitch? { return JSValueToHitch(context, call(jsvalue: script, args))?.halfhitch() }
-    public func call(string script: String, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: script, args))?.toString() }
-    public func call(date script: String, _ args: [JibUnknown?]) -> Date? { return JSValueToHitch(context, call(jsvalue: script, args))?.toString().date() }
-    public func call(double script: String, _ args: [JibUnknown?]) -> Double? { return JSValueToDouble(context, call(jsvalue: script, args)) }
-    public func call(int script: String, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: script, args)) }
-    public func call(bool script: String, _ args: [JibUnknown?]) -> Bool? { return JSValueToBool(context, call(jsvalue: script, args)) }
-    public func call(json script: String, _ args: [JibUnknown?]) -> Hitch? { return JSValueToJson(context, call(jsvalue: script, args)) }
-    public func call(none script: String, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: script, args) != nil }
-    
-    private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
-        lock.lock(); defer { lock.unlock() }
-        guard released == false else { return nil }
         
-        var jsException: JSObjectRef? = nil
-        let convertedArgs = args.map { $0?.createJibValue(self) }
-        if args.count != convertedArgs.count {
-            self.exception = "jib.call failed to convert all arguments to JSValues"
-            // print(exception ?? "unknown exception occurred")
-            return nil
-        }
-        let jsValue = JSObjectCallAsFunction(context, function.objectRef, nil, convertedArgs.count, convertedArgs, &jsException)
-        if let jsException = jsException {
-            return record(exception: jsException)
-        }
-        return jsValue
+        return nil
     }
     
     public func call<T: Decodable>(decoded function: JibFunction, _ args: [JibUnknown?]) -> T? { return JSValueToDecodable(context, call(jsvalue: function, args)) }
@@ -232,11 +211,11 @@ public class Jib {
     // MARK: - JS Creation
     
     @discardableResult
-    public func new(function name: HalfHitch, body: @escaping JibFunctionBody) -> JibFunction? {
+    public func new(function name: HalfHitch, body: @escaping JibJSCFunctionBody) -> JibJSCFunction? {
         lock.lock(); defer { lock.unlock() }
         guard released == false else { return nil }
         
-        guard let function = JibFunction(jib: self, name: name, body: body) else { return nil }
+        guard let function = JibJSCFunction(jib: self, name: name, body: body) else { return nil }
         customFunctions.append(function)
         return function
     }
@@ -265,7 +244,7 @@ public class Jib {
     }
     
     @discardableResult
-    public func set(global name: HalfHitch, value: JibFunction) -> Bool? {
+    public func set(global name: HalfHitch, value: JibJSCFunction) -> Bool? {
         return set(global: name, value: value.objectRef ?? undefined)
     }
     
@@ -320,6 +299,13 @@ public class Jib {
         get {
             lock.lock(); defer { lock.unlock() }
             guard released == false else { return nil }
+            
+            if useMockFunctions {
+                if JSObjectIsFunction(context, resolve(exec)) {
+                    return JibMockFunction(jib: self, evalName: exec.toString())
+                }
+                return nil
+            }
             
             return JSValueToFunction(self, resolve(exec))
         }

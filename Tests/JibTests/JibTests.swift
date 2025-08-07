@@ -299,7 +299,7 @@ final class JibTests: XCTestCase {
         queue.waitUntilAllOperationsAreFinished()
     }
     
-    func testFunctionAlternativeJib() throws {
+    func testMockFunctions() throws {
         let jib = Jib()
         
         jib.eval("""
@@ -309,11 +309,24 @@ final class JibTests: XCTestCase {
             }
         """)
         
-        // normal method
-        let startUpFunction = jib[function: "rover.startUp"]!
-        
+        // calling the different versions manually
+        jib.useMockFunctions = false
+        var startUpFunction = jib[function: "rover.startUp"]!
         XCTAssertEqual(jib.call(decoded: startUpFunction, [0, true, "hello world"]), "{\"0\":0,\"1\":true,\"2\":\"hello world\"}")
-        XCTAssertEqual(jib.call(decoded: "rover.startUp", [0, true, "hello world"]), "{\"0\":0,\"1\":true,\"2\":\"hello world\"}")
+        
+        XCTAssertEqual(jib[int: "__jib_args0"], nil)
+        XCTAssertEqual(jib[bool: "__jib_args1"], nil)
+        XCTAssertEqual(jib[string: "__jib_args2"], "undefined")
+        
+        // using the jib configuration option
+        jib.useMockFunctions = true
+        startUpFunction = jib[function: "rover.startUp"]!
+        XCTAssertEqual(jib.call(decoded: startUpFunction, [0, true, "hello world"]), "{\"0\":0,\"1\":true,\"2\":\"hello world\"}")
+        
+        // Note: if the mock function worked then __jib_args0 should be 0, __jib_args1 should be true...
+        XCTAssertEqual(jib[int: "__jib_args0"], 0)
+        XCTAssertEqual(jib[bool: "__jib_args1"], true)
+        XCTAssertEqual(jib[string: "__jib_args2"], "hello world")
     }
     
     func testConvenience() {

@@ -79,7 +79,7 @@ public func JSValueToFunction(_ jib: Jib, _ value: JSValueRef?) -> JibFunction? 
     guard let value = value else { return nil }
     guard JSValueIsUndefined(jib.context, value) == false else { return nil }
     guard JSObjectIsFunction(jib.context, value) == true else { return nil }
-    return JibFunction(jib: jib, object: value)
+    return JibJSCFunction(jib: jib, object: value)
 }
 
 @inlinable
