@@ -52,7 +52,7 @@ public class Jib {
     
     public var exception: Hitch?
     
-    public var useMockFunctions: Bool = true
+    public var useMockFunctions: Bool = false
     
     private var printFn: JibJSCFunction? = nil
     
