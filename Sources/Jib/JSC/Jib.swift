@@ -163,7 +163,7 @@ public class Jib {
             for convertedArg in convertedArgs {
                 let key: HalfHitch = "__jib_args{0}" << [count]
                 
-                _set(global: key, value: convertedArg)
+                _set(global: key, value: convertedArg, mutable: true)
                 hitch.append(key)
                 
                 if count < convertedArgs.count-1 {
@@ -199,7 +199,7 @@ public class Jib {
     public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: function, args)) }
     public func call(bool function: JibFunction, _ args: [JibUnknown?]) -> Bool? { return JSValueToBool(context, call(jsvalue: function, args)) }
     public func call(json function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToJson(context, call(jsvalue: function, args)) }
-    public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: function, args) != nil }
+    public func call(none function: JibFunction, _ args: [JibUnknown?]) { _ = call(jsvalue: function, args) }
     
     public func garbageCollect() {
         lock.lock(); defer { lock.unlock() }
@@ -221,15 +221,20 @@ public class Jib {
     }
     
     @discardableResult
-    private func _set(global name: HalfHitch, value: JibValue) -> Bool? {
+    private func _set(global name: HalfHitch, value: JibValue, mutable: Bool = false) -> Bool? {
         guard released == false else { return nil }
         
         let jsString = CreateJSString(halfhitch: name)
         defer { JSStringRelease(jsString) }
         
         var jsException: JSObjectRef? = nil
-                
-        JSObjectSetProperty(context, global, jsString, value, UInt32(kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontEnum | kJSPropertyAttributeDontDelete), &jsException)
+        
+        if mutable {
+            JSObjectSetProperty(context, global, jsString, value, UInt32(kJSPropertyAttributeDontEnum), &jsException)
+        } else {
+            JSObjectSetProperty(context, global, jsString, value, UInt32(kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontEnum | kJSPropertyAttributeDontDelete), &jsException)
+        }
+        
         if let jsException = jsException {
             return record(exception: jsException)
         }

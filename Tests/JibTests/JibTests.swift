@@ -327,6 +327,39 @@ final class JibTests: XCTestCase {
         XCTAssertEqual(jib[int: "__jib_args0"], 0)
         XCTAssertEqual(jib[bool: "__jib_args1"], true)
         XCTAssertEqual(jib[string: "__jib_args2"], "hello world")
+        
+        XCTAssertEqual(jib.call(decoded: startUpFunction, [1, false, "goodbye world"]), "{\"0\":1,\"1\":false,\"2\":\"goodbye world\"}")
+        
+        // Note: if the mock function worked then __jib_args0 should be 0, __jib_args1 should be true...
+        XCTAssertEqual(jib[int: "__jib_args0"], 1)
+        XCTAssertEqual(jib[bool: "__jib_args1"], false)
+        XCTAssertEqual(jib[string: "__jib_args2"], "goodbye world")
+
+        
+        // test sending a function as an argument to a mock function
+        jib.eval("""
+        let wrapper = {};
+        wrapper.set = function(key, value) {
+            wrapper[key] = value;
+        }
+        """)
+        
+        let setFunction = jib[function: "wrapper.set"]!
+        
+        let printFunction = jib.new(function: "print", body: { arguments in
+            for argument in arguments {
+                print(argument)
+            }
+            return nil
+        })
+        
+        jib.call(none: setFunction, ["print", printFunction])
+        
+        XCTAssertEqual(jib[string: "__jib_args0"], "print")
+        XCTAssertEqual(jib[string: "__jib_args1"], "function print() {\n    [native code]\n}")
+
+        
+        jib.eval("wrapper.print(1,2,3,4)")
     }
     
     func testConvenience() {
