@@ -353,7 +353,7 @@ final class JibTests: XCTestCase {
             return nil
         })
         
-        jib.call(none: setFunction, ["print", printFunction])
+        _ = jib.call(none: setFunction, ["print", printFunction])!
         
         XCTAssertEqual(jib[string: "__jib_args0"], "print")
         XCTAssertEqual(jib[string: "__jib_args1"], "function print() {\n    [native code]\n}")
