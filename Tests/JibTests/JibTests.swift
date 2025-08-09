@@ -139,7 +139,7 @@ final class JibTests: XCTestCase {
     func testPassJibFunctionToFunction() {
         let jib = Jib()
         
-        let printFunction = jib.new(function: "print2", body: { arguments in
+        let printFunction: JibFunction? = jib.new(function: "print2", body: { arguments in
             for argument in arguments {
                 print(argument)
             }

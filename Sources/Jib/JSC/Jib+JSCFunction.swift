@@ -135,11 +135,9 @@ public class JibJSCFunction: JibFunction {
         
         JSValueProtect(jib.context, objectRef)
     }
-}
-
-extension JibJSCFunction: JibUnknown {
+    
     @inlinable
-    public func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
+    public override func createJibValue(_ context: JSGlobalContextRef) -> JibValue {
         guard let objectRef = objectRef else {
             return JSValueMakeUndefined(context)
         }
@@ -147,8 +145,7 @@ extension JibJSCFunction: JibUnknown {
     }
     
     @inlinable
-    public func createJibValue(_ jib: Jib) -> JibValue {
+    public override func createJibValue(_ jib: Jib) -> JibValue {
         return createJibValue(jib.context)
     }
 }
-
