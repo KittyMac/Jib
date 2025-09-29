@@ -316,7 +316,7 @@ final class JibTests: XCTestCase {
         
         XCTAssertEqual(jib[int: "__jib_args0"], nil)
         XCTAssertEqual(jib[bool: "__jib_args1"], nil)
-        XCTAssertEqual(jib[string: "__jib_args2"], "undefined")
+        XCTAssertEqual(jib[string: "__jib_args2"], nil)
         
         // using the jib configuration option
         jib.useMockFunctions = true

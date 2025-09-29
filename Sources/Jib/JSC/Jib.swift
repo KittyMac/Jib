@@ -486,7 +486,7 @@ public class Jib {
             return returnValue
         }
         
-        return undefined
+        return nil
     }
     
     @discardableResult
