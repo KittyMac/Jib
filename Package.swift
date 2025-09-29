@@ -20,71 +20,39 @@ import Foundation
 // You might need to generate a new .lib from JavaScriptCore.dll, in which case
 // use this tool: https://github.com/KHeresy/GenLibFromDll
 
-var engine: String = ProcessInfo.processInfo.environment["JIB"] ?? "JSC"
 
-var jibSourcePath = "Sources/Unknown"
-var jibDependencies: [Target.Dependency] = []
-var dynamicLibrary: [Product] = []
 var linkedLibrary: [LinkerSetting] = []
 
-if engine == "JSC" {
-    jibSourcePath = "Sources/Jib/JSC"
-    #if !canImport(JavaScriptCore)
-    jibDependencies = [ "CJSCore" ]
-    #endif
-    jibDependencies += [
-        "Hitch",
-        "Chronometer"
-    ]
-    #if os(Linux)
-    if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.0") {
-        linkedLibrary = [
-            .linkedLibrary("javascriptcoregtk-4.0"),
-        ]
-    } else if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.1") {
-        linkedLibrary = [
-            .linkedLibrary("javascriptcoregtk-4.1"),
-        ]
-    }
-    #endif
-    #if os(Windows)
-    // Find correct local path to JavaScriptCore:
-    // if we are building jib itself, its just "JavaScriptCore"
-    // otherwise it is ".build/checkouts/Jib/JavaScriptCore"
-    var javaScriptCoreLibPath = "JavaScriptCore"
-    if FileManager.default.fileExists(atPath: "JavaScriptCore.lib") == false {
-        javaScriptCoreLibPath = ".build/checkouts/Jib/JavaScriptCore"
-    }
-        
+#if os(Linux)
+if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.0") {
     linkedLibrary = [
-        .linkedLibrary(javaScriptCoreLibPath),
-        .linkedLibrary("swiftCore")
+        .linkedLibrary("javascriptcoregtk-4.0"),
     ]
-    #endif
+} else if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.1") {
+    linkedLibrary = [
+        .linkedLibrary("javascriptcoregtk-4.1"),
+    ]
 }
+#endif
+#if os(Windows)
+// Find correct local path to JavaScriptCore:
+// if we are building jib itself, its just "JavaScriptCore"
+// otherwise it is ".build/checkouts/Jib/JavaScriptCore"
+var javaScriptCoreLibPath = "JavaScriptCore"
+if FileManager.default.fileExists(atPath: "JavaScriptCore.lib") == false {
+    javaScriptCoreLibPath = ".build/checkouts/Jib/JavaScriptCore"
+}
+    
+linkedLibrary = [
+    .linkedLibrary(javaScriptCoreLibPath),
+    .linkedLibrary("swiftCore")
+]
+#endif
 
-if engine == "QJS" {
-    jibSourcePath = "Sources/Jib/QuickJS"
-    jibDependencies = [
-        "CQuickJS",
-        "Hitch",
-        "Chronometer"
-    ]
-    #if os(Linux) || os(Android) || os(Windows)
-    dynamicLibrary = [
-        .library( name: "CQuickJSLib", type: .dynamic, targets: ["CQuickJS"])
-    ]
-    #endif
-    #if os(Windows)
-    linkedLibrary = [
-        .linkedLibrary("swiftCore")
-    ]
-    #endif
-}
 
 let package = Package(
     name: "Jib",
-    products: dynamicLibrary + [
+    products: [
         .library( name: "Jib", targets: ["Jib"])
     ],
     dependencies: [
@@ -97,13 +65,13 @@ let package = Package(
             linkerSettings: linkedLibrary
         ),
         .target(
-            name: "CQuickJS",
-            linkerSettings: linkedLibrary
-        ),
-        .target(
             name: "Jib",
-            dependencies: jibDependencies,
-            path: jibSourcePath
+            dependencies: [
+                "Hitch",
+                "Chronometer",
+                .byName(name: "CJSCore", condition: .when(platforms: [.android, .linux]))
+            ],
+            path: "Sources/Jib/JSC"
         ),
         .testTarget(
             name: "JibTests",
