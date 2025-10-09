@@ -26,11 +26,11 @@ var linkedLibrary: [LinkerSetting] = []
 #if os(Linux)
 if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.0") {
     linkedLibrary = [
-        .linkedLibrary("javascriptcoregtk-4.0"),
+        .linkedLibrary("javascriptcoregtk-4.0", .when(platforms: [.linux])),
     ]
 } else if FileManager.default.fileExists(atPath: "/usr/include/webkitgtk-4.1") {
     linkedLibrary = [
-        .linkedLibrary("javascriptcoregtk-4.1"),
+        .linkedLibrary("javascriptcoregtk-4.1", .when(platforms: [.linux])),
     ]
 }
 #endif
@@ -44,10 +44,11 @@ if FileManager.default.fileExists(atPath: "JavaScriptCore.lib") == false {
 }
     
 linkedLibrary = [
-    .linkedLibrary(javaScriptCoreLibPath),
-    .linkedLibrary("swiftCore")
+    .linkedLibrary(javaScriptCoreLibPath, .when(platforms: [.windows])),
+    .linkedLibrary("swiftCore", .when(platforms: [.windows]))
 ]
 #endif
+
 
 
 let package = Package(
@@ -62,7 +63,9 @@ let package = Package(
     targets: [
         .target(
             name: "CJSCore",
-            linkerSettings: linkedLibrary
+            linkerSettings: linkedLibrary + [
+                .linkedLibrary("jsc", .when(platforms: [.android])),
+            ]
         ),
         .target(
             name: "Jib",
