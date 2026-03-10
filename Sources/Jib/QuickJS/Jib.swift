@@ -62,8 +62,13 @@ extension HalfHitch {
     }
 }
 
-public class Jib {
+public class Jib: Equatable {
     public static let engine = "QuickJS"
+    
+    private let uuid = UUID().uuidString
+    public static func == (lhs: Jib, rhs: Jib) -> Bool {
+        lhs.uuid == rhs.uuid
+    }
     
     public let runtime: OpaquePointer
     public let context: OpaquePointer
