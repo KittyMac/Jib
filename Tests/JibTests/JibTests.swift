@@ -30,6 +30,19 @@ final class JibTests: XCTestCase {
         if let _ = jib[function: "test.config"] {
             print("WILL PRINT")
         }
+        
+        // test all other accessors
+        
+        if let value: [String] = jib[decoded: "test.config2"] { print("WILL NOT PRINT (decoable): \(value)") }
+        if let value = jib[hitch: "test.config2"] { print("WILL NOT PRINT (hitch): \(value)") }
+        if let value = jib[halfhitch: "test.config2"] { print("WILL NOT PRINT (halfhitch): \(value)") }
+        if let value = jib[string: "test.config2"] { print("WILL NOT PRINT (string): \(value)") }
+        if let value = jib[date: "test.config2"] { print("WILL NOT PRINT (date): \(value)") }
+        if let value = jib[int: "test.config2"] { print("WILL NOT PRINT (int): \(value)") }
+        if let value = jib[double: "test.config2"] { print("WILL NOT PRINT (double): \(value)") }
+        if let value = jib[bool: "test.config2"] { print("WILL NOT PRINT (bool): \(value)") }
+        if let value = jib[json: "test.config2"] { print("WILL NOT PRINT (json): \(value)") }
+        
     }
     
     func testEval0() {

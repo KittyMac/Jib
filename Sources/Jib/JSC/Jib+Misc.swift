@@ -60,6 +60,7 @@ public func JSValueToJson(_ context: JSGlobalContextRef, _ value: JSObjectRef?) 
 @inlinable
 func JSValueToHitch(_ context: JSGlobalContextRef, _ value: JSValueRef?) -> Hitch? {
     guard let value = value else { return nil }
+    guard JSValueIsUndefined(context, value) == false else { return nil }
     let jsString = JSValueToStringCopy(context, value, nil)
     let result = JSStringToHitch(context, jsString)
     JSStringRelease(jsString)
