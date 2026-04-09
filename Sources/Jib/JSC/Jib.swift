@@ -311,7 +311,9 @@ public class Jib: Equatable {
             guard released == false else { return nil }
             
             if useMockFunctions {
-                if JSObjectIsFunction(context, resolve(exec)) {
+                if let value = resolve(exec),
+                   JSValueIsUndefined(context, value) == false,
+                   JSObjectIsFunction(context, value) == true {
                     return JibMockFunction(jib: self, evalName: exec.toString())
                 }
                 return nil

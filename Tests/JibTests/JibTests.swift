@@ -8,6 +8,30 @@ final class JibTests: XCTestCase {
         print("Javascript engine: \(Jib.engine)")
     }
     
+    func testCrash0() {
+        // NOTE: calling JSObjectIsFunction(context, value) when value is JSValueIsUndefined
+        // leads to a crash; this path tests a fix by calling JSValueIsUndefined() == faslse first
+        let jib = Jib()
+        
+        jib.useMockFunctions = true
+        
+        jib.eval("""
+        let test = {};
+        """)
+                
+        if let _ = jib[function: "test.config"] {
+            print("WILL NOT PRINT")
+        }
+        
+        jib.eval("""
+        test.config = function() {}
+        """)
+        
+        if let _ = jib[function: "test.config"] {
+            print("WILL PRINT")
+        }
+    }
+    
     func testEval0() {
         let jib = Jib()
         
