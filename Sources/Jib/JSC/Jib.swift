@@ -229,7 +229,7 @@ public class Jib: Equatable {
     private func _set(global name: HalfHitch, value: JibValue, mutable: Bool = false) -> Bool? {
         guard released == false else { return nil }
         
-        let jsString = CreateJSString(halfhitch: name)
+        guard let jsString = CreateJSString(halfhitch: name) else { return nil }
         defer { JSStringRelease(jsString) }
         
         var jsException: JSObjectRef? = nil
