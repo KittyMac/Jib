@@ -210,7 +210,11 @@ public class Jib: Equatable {
         lock.lock(); defer { lock.unlock() }
         guard released == false else { return }
         
+        #if os(Android) || os(Linux)
+        JSSynchronousGarbageCollectForDebugging(context)
+        #else
         JSGarbageCollect(context)
+        #endif
     }
     
     // MARK: - JS Creation

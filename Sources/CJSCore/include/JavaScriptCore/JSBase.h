@@ -139,6 +139,8 @@ JS_EXPORT bool JSCheckScriptSyntax(JSContextRef ctx, JSStringRef script, JSStrin
 */
 JS_EXPORT void JSGarbageCollect(JSContextRef ctx);
 
+JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef);
+
 #ifdef __cplusplus
 }
 #endif
