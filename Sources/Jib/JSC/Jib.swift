@@ -209,7 +209,12 @@ public class Jib: Equatable {
     public func garbageCollect() {
         lock.lock(); defer { lock.unlock() }
         guard released == false else { return }
-        
+        JSGarbageCollect(context)
+    }
+    
+    public func garbageCollectFull() {
+        lock.lock(); defer { lock.unlock() }
+        guard released == false else { return }
         #if os(Android) || os(Linux)
         JSSynchronousGarbageCollectForDebugging(context)
         #else
