@@ -69,10 +69,9 @@ public class JibJSCFunction: JibFunction {
         
         JSClassRelease(jsClass)
         
-        if let jib = jib,
-           jib.released == false {
-            JSValueUnprotect(jib.context, objectRef)
-        }
+        // Goes through the Jib's lock so this cannot race release() on another
+        // thread (which would unprotect against a freed context).
+        jib?.unprotect(objectRef)
     }
     
     @usableFromInline
@@ -81,7 +80,9 @@ public class JibJSCFunction: JibFunction {
 
         objectRef = object
         
-        self.bodyPtr = JSObjectGetPrivate(objectRef)
+        // We did not create (or retain) any private data on a wrapped object, so we
+        // must not take ownership of it; deinit would otherwise over-release it.
+        self.bodyPtr = nil
         
         JSValueProtect(jib.context, objectRef)
         

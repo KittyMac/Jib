@@ -68,30 +68,72 @@ public class Jib: Equatable {
     @usableFromInline
     internal var released = false
     
+    // Recursive so that a Swift callback invoked from JS (which runs while this
+    // lock is held) can call back into the same Jib without deadlocking, and so
+    // that JibJSCFunction.deinit can unprotect while the lock is already held.
     @usableFromInline
-    let lock = NSLock()
+    let lock = NSRecursiveLock()
+    
+    // Number of active withContext() scopes on the owning thread. While > 0 the
+    // context must not be released, because JS frames for it are on the stack.
+    @usableFromInline
+    internal var depth = 0
+    
+    @usableFromInline
+    internal var releasePending = false
     
     deinit {
         lock.lock(); defer { lock.unlock() }
         // print("Jib - deinit \(tag)")
-        customFunctions = []
-        printFn = nil
-        if released == false {
-            JSGlobalContextRelease(context)
-            JSContextGroupRelease(group)
-            released = true
-        }
+        _release()
     }
 
     public func release() {
         lock.lock(); defer { lock.unlock() }
+        if depth > 0 {
+            // release() was called from inside a callback while JS is still
+            // executing on this context; tear down once the outermost scope exits.
+            releasePending = true
+            return
+        }
+        _release()
+    }
+    
+    // Must be called with lock held.
+    @usableFromInline
+    internal func _release() {
+        guard released == false else { return }
+        // Drop functions first so their deinit can still unprotect against a live context
         customFunctions = []
         printFn = nil
-        if released == false {
-            JSGlobalContextRelease(context)
-            JSContextGroupRelease(group)
-            released = true
+        JSGlobalContextRelease(context)
+        JSContextGroupRelease(group)
+        released = true
+        releasePending = false
+    }
+    
+    /// Runs `body` with the lock held and the context guaranteed to stay alive
+    /// for the full duration of `body`. Every JSValueRef produced inside `body`
+    /// must be converted to a Swift value before `body` returns.
+    @usableFromInline
+    internal func withContext<T>(_ body: (JSGlobalContextRef) -> T?) -> T? {
+        lock.lock(); defer { lock.unlock() }
+        guard released == false else { return nil }
+        depth += 1
+        defer {
+            depth -= 1
+            if depth == 0 && releasePending {
+                _release()
+            }
         }
+        return body(context)
+    }
+    
+    @usableFromInline
+    internal func unprotect(_ value: JSValueRef?) {
+        lock.lock(); defer { lock.unlock() }
+        guard released == false, let value = value else { return }
+        JSValueUnprotect(context, value)
     }
     
     public init(clone: Jib? = nil,
@@ -100,14 +142,32 @@ public class Jib: Equatable {
         self.tag = tag
         // print("Jib - init: \(tag)")
         
-        group = JSContextGroupCreate()
+        // JSValueRefs belong to a single VM (context group). Copying values out of
+        // another group's context is undefined behaviour, so a clone must live in
+        // the same group as its source. The source is locked for the copy.
+        var source: Jib? = nil
+        if let clone = clone {
+            clone.lock.lock()
+            if clone.released == false {
+                source = clone
+            } else {
+                clone.lock.unlock()
+            }
+        }
+        defer { source?.lock.unlock() }
+        
+        if let source = source {
+            group = JSContextGroupRetain(source.group)
+        } else {
+            group = JSContextGroupCreate()
+        }
         context = JSGlobalContextCreateInGroup(group, nil)
         global = JSContextGetGlobalObject(context)
         undefined = JSValueMakeUndefined(context)
         self.true = JSValueMakeBoolean(context, true)
         self.false = JSValueMakeBoolean(context, false)
         
-        if let clone = clone,
+        if let clone = source,
            let cloneGlobal = JSContextGetGlobalObject(clone.context) {
             let names = JSObjectCopyPropertyNames(clone.context, cloneGlobal)
             for idx in 0..<JSPropertyNameArrayGetCount(names) {
@@ -135,10 +195,9 @@ public class Jib: Equatable {
         }
     }
     
-    private func call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
-        lock.lock(); defer { lock.unlock() }
-        guard released == false else { return nil }
-        
+    // Must be called from inside withContext(); the returned JSValueRef is only
+    // valid until that scope exits.
+    private func _call(jsvalue function: JibFunction, _ args: [JibUnknown?]) -> JSValueRef? {
         if let function = function as? JibJSCFunction {
             var jsException: JSObjectRef? = nil
             let convertedArgs = args.map { $0?.createJibValue(self) }
@@ -194,44 +253,45 @@ public class Jib: Equatable {
         return nil
     }
     
-    public func call<T: Decodable>(decoded function: JibFunction, _ args: [JibUnknown?]) -> T? { return JSValueToDecodable(context, call(jsvalue: function, args)) }
-    public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? { return JSValueToFunction(self, call(jsvalue: function, args)) }
-    public func call(hitch function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToHitch(context, call(jsvalue: function, args)) }
-    public func call(halfhitch function: JibFunction, _ args: [JibUnknown?]) -> HalfHitch? { return JSValueToHitch(context, call(jsvalue: function, args))?.halfhitch() }
-    public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? { return JSValueToHitch(context, call(jsvalue: function, args))?.toString() }
-    public func call(date function: JibFunction, _ args: [JibUnknown?]) -> Date? { return JSValueToHitch(context, call(jsvalue: function, args))?.toString().date() }
-    public func call(double function: JibFunction, _ args: [JibUnknown?]) -> Double? { return JSValueToDouble(context, call(jsvalue: function, args)) }
-    public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? { return JSValueToInt(context, call(jsvalue: function, args)) }
-    public func call(bool function: JibFunction, _ args: [JibUnknown?]) -> Bool? { return JSValueToBool(context, call(jsvalue: function, args)) }
-    public func call(json function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return JSValueToJson(context, call(jsvalue: function, args)) }
-    public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? { return call(jsvalue: function, args) != nil }
+    public func call<T: Decodable>(decoded function: JibFunction, _ args: [JibUnknown?]) -> T? { return withContext { JSValueToDecodable($0, _call(jsvalue: function, args)) } }
+    public func call(function: JibFunction, _ args: [JibUnknown?]) -> JibFunction? { return withContext { _ in JSValueToFunction(self, _call(jsvalue: function, args)) } }
+    public func call(hitch function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return withContext { JSValueToHitch($0, _call(jsvalue: function, args)) } }
+    public func call(halfhitch function: JibFunction, _ args: [JibUnknown?]) -> HalfHitch? { return withContext { JSValueToHitch($0, _call(jsvalue: function, args))?.halfhitch() } }
+    public func call(string function: JibFunction, _ args: [JibUnknown?]) -> String? { return withContext { JSValueToHitch($0, _call(jsvalue: function, args))?.toString() } }
+    public func call(date function: JibFunction, _ args: [JibUnknown?]) -> Date? { return withContext { JSValueToHitch($0, _call(jsvalue: function, args))?.toString().date() } }
+    public func call(double function: JibFunction, _ args: [JibUnknown?]) -> Double? { return withContext { JSValueToDouble($0, _call(jsvalue: function, args)) } }
+    public func call(int function: JibFunction, _ args: [JibUnknown?]) -> Int? { return withContext { JSValueToInt($0, _call(jsvalue: function, args)) } }
+    public func call(bool function: JibFunction, _ args: [JibUnknown?]) -> Bool? { return withContext { JSValueToBool($0, _call(jsvalue: function, args)) } }
+    public func call(json function: JibFunction, _ args: [JibUnknown?]) -> Hitch? { return withContext { JSValueToJson($0, _call(jsvalue: function, args)) } }
+    public func call(none function: JibFunction, _ args: [JibUnknown?]) -> Any? { return withContext { _ in _call(jsvalue: function, args) != nil } }
     
     public func garbageCollect() {
-        lock.lock(); defer { lock.unlock() }
-        guard released == false else { return }
-        JSGarbageCollect(context)
+        _ = withContext { context -> Bool? in
+            JSGarbageCollect(context)
+            return true
+        }
     }
     
     public func garbageCollectFull() {
-        lock.lock(); defer { lock.unlock() }
-        guard released == false else { return }
-        #if os(Android) || os(Linux)
-        JSSynchronousGarbageCollectForDebugging(context)
-        #else
-        JSGarbageCollect(context)
-        #endif
+        _ = withContext { context -> Bool? in
+            #if os(Android) || os(Linux)
+            JSSynchronousGarbageCollectForDebugging(context)
+            #else
+            JSGarbageCollect(context)
+            #endif
+            return true
+        }
     }
     
     // MARK: - JS Creation
     
     @discardableResult
     public func new(function name: HalfHitch, body: @escaping JibJSCFunctionBody) -> JibJSCFunction? {
-        lock.lock(); defer { lock.unlock() }
-        guard released == false else { return nil }
-        
-        guard let function = JibJSCFunction(jib: self, name: name, body: body) else { return nil }
-        customFunctions.append(function)
-        return function
+        return withContext { _ in
+            guard let function = JibJSCFunction(jib: self, name: name, body: body) else { return nil }
+            customFunctions.append(function)
+            return function
+        }
     }
     
     @discardableResult
@@ -258,8 +318,7 @@ public class Jib: Equatable {
     
     @discardableResult
     public func set(global name: HalfHitch, value: JibValue) -> Bool? {
-        lock.lock(); defer { lock.unlock() }
-        return _set(global: name, value: value)
+        return withContext { _ in _set(global: name, value: value) }
     }
     
     @discardableResult
@@ -270,11 +329,7 @@ public class Jib: Equatable {
     // MARK: - JS Evaluation
     @discardableResult
     public func eval(_ script: HalfHitch) -> Bool? {
-        lock.lock(); defer { lock.unlock() }
-        guard released == false else { return nil }
-        
-        // if that fails, attempt to resolve by evaluating it as a script
-        return script.jsString { jsScript in
+        return withContext { context in script.jsString { jsScript in
             defer { JSStringRelease(jsScript) }
 
             var jsException: JSObjectRef? = nil
@@ -284,7 +339,7 @@ public class Jib: Equatable {
             }
                     
             return true
-        }
+        } }
     }
     @discardableResult
     @inlinable public func eval(_ script: Hitch) -> Bool? { return eval(script.halfhitch()) }
@@ -302,10 +357,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript<T: Decodable> (decoded exec: HalfHitch) -> T? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToDecodable(context, resolve(exec))
+            return withContext { context in
+                return JSValueToDecodable(context, resolve(exec))
+            }
         }
     }
     @inlinable public subscript<T: Decodable> (decoded exec: Hitch) -> T? { get { return self[decoded: exec.halfhitch()] } }
@@ -316,19 +370,18 @@ public class Jib: Equatable {
     @inlinable
     public subscript (function exec: HalfHitch) -> JibFunction? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            if useMockFunctions {
-                if let value = resolve(exec),
-                   JSValueIsUndefined(context, value) == false,
-                   JSObjectIsFunction(context, value) == true {
-                    return JibMockFunction(jib: self, evalName: exec.toString())
+            return withContext { context in
+                if useMockFunctions {
+                    if let value = resolve(exec),
+                       JSValueIsUndefined(context, value) == false,
+                       JSObjectIsFunction(context, value) == true {
+                        return JibMockFunction(jib: self, evalName: exec.toString())
+                    }
+                    return nil
                 }
-                return nil
-            }
             
-            return JSValueToFunction(self, resolve(exec))
+                return JSValueToFunction(self, resolve(exec))
+            }
         }
     }
     @inlinable public subscript (function exec: Hitch) -> JibFunction? { get { return self[function: exec.halfhitch()] } }
@@ -339,10 +392,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript (hitch exec: HalfHitch) -> Hitch? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToHitch(context, resolve(exec))
+            return withContext { context in
+                return JSValueToHitch(context, resolve(exec))
+            }
         }
     }
     @inlinable public subscript (hitch exec: Hitch) -> Hitch? { get { return self[hitch: exec.halfhitch()] } }
@@ -353,10 +405,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript (halfhitch exec: HalfHitch) -> HalfHitch? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToHitch(context, resolve(exec))?.halfhitch()
+            return withContext { context in
+                return JSValueToHitch(context, resolve(exec))?.halfhitch()
+            }
         }
     }
     @inlinable public subscript (halfhitch exec: Hitch) -> HalfHitch? { get { return self[halfhitch: exec.halfhitch()] } }
@@ -367,10 +418,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript (string exec: HalfHitch) -> String? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToHitch(context, resolve(exec))?.toString()
+            return withContext { context in
+                return JSValueToHitch(context, resolve(exec))?.toString()
+            }
         }
     }
     @inlinable public subscript (string exec: Hitch) -> String? { get { return self[string: exec.halfhitch()] } }
@@ -393,10 +443,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript (double exec: HalfHitch) -> Double? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToDouble(context, resolve(exec))
+            return withContext { context in
+                return JSValueToDouble(context, resolve(exec))
+            }
         }
     }
     @inlinable public subscript (double exec: Hitch) -> Double? { get { return self[double: exec.halfhitch()] } }
@@ -407,10 +456,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript (int exec: HalfHitch) -> Int? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToInt(context, resolve(exec))
+            return withContext { context in
+                return JSValueToInt(context, resolve(exec))
+            }
         }
     }
     @inlinable public subscript (int exec: Hitch) -> Int? { get { return self[int: exec.halfhitch()] } }
@@ -421,10 +469,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript (bool exec: HalfHitch) -> Bool? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToBool(context, resolve(exec))
+            return withContext { context in
+                return JSValueToBool(context, resolve(exec))
+            }
         }
     }
     @inlinable public subscript (bool exec: Hitch) -> Bool? { get { return self[bool: exec.halfhitch()] } }
@@ -435,10 +482,9 @@ public class Jib: Equatable {
     @inlinable
     public subscript (json exec: HalfHitch) -> Hitch? {
         get {
-            lock.lock(); defer { lock.unlock() }
-            guard released == false else { return nil }
-            
-            return JSValueToJson(context, resolve(exec))
+            return withContext { context in
+                return JSValueToJson(context, resolve(exec))
+            }
         }
     }
     @inlinable public subscript (json exec: Hitch) -> Hitch? { get { return self[json: exec.halfhitch()] } }

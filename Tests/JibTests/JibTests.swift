@@ -311,6 +311,55 @@ final class JibTests: XCTestCase {
         queue.waitUntilAllOperationsAreFinished()
     }
     
+    func testCallJsonRacingRelease() throws {
+        // Regression: call(json:) used to convert the result with JSValueCreateJSONString
+        // after dropping the lock, so a concurrent release() could free the context
+        // underneath it (crash in JSC::JSLockHolder::JSLockHolder).
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 8
+        
+        for _ in 0..<500 {
+            let jib = Jib()
+            jib.useMockFunctions = true
+            jib.eval("function make(n) { let o = {}; for (let i = 0; i < n; i++) { o['k' + i] = /a+b/.test('aaab' + i); } return o; }")
+            guard let make = jib[function: "make"] else { XCTFail(); return }
+            
+            for _ in 0..<4 {
+                queue.addOperation {
+                    for _ in 0..<20 {
+                        _ = jib.call(json: make, [200])
+                    }
+                }
+            }
+            queue.addOperation {
+                jib.release()
+            }
+        }
+        
+        queue.waitUntilAllOperationsAreFinished()
+    }
+    
+    func testReleaseFromInsideCallback() throws {
+        let jib = Jib()
+        let releaseFn = jib.new(function: "releaseMe") { _ in
+            jib.release()   // must be deferred until the eval below unwinds
+            return nil
+        }!
+        jib.set(global: "releaseMe", value: releaseFn)
+        XCTAssertEqual(jib.eval("releaseMe(); var x = 1 + 1;"), true)
+        XCTAssertNil(jib[int: "x"])
+    }
+    
+    func testCloneSharesGroup() throws {
+        let a = Jib()
+        a.eval("var shared = { n: 42 }; function getN() { return shared.n; }")
+        let b = Jib(clone: a)
+        XCTAssertTrue(a.group == b.group)
+        XCTAssertEqual(b[int: "getN()"], 42)
+        a.release()
+        XCTAssertEqual(b[int: "getN()"], 42)
+    }
+    
     func testParallelJib() throws {
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 20
